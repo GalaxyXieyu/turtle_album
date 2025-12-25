@@ -1,0 +1,14 @@
+testcase:
+  name: 设置公开接口测试
+  description: 测试系统设置获取接口
+  host: http://localhost:8000
+  steps:
+  - id: get_settings
+    path: /api/settings
+    method: GET
+    assert:
+    - type: status_code
+      expected: 200
+    - type: equals
+      field: message
+      expected: Settings retrieved successfully

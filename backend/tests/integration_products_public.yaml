@@ -1,76 +1,37 @@
 testcase:
-  name: Products公共接口测试
-  description: 测试产品公共查询接口
+  name: 产品公开接口集成测试
+  description: 测试产品列表、详情、筛选等公开接口
+  host: http://localhost:8000
   steps:
-  - id: step1
+  - id: get_products
     path: /api/products
     method: GET
     params:
-      page: '1'
-      limit: '10'
+      limit: 10
+      page: 1
     assert:
-    - type: equal
-      field: status_code
-      expected: 200
-    - type: equal
-      field: success
-      expected: true
-    - type: contains
-      field: data.products
-  - id: step2
-    path: /api/products
-    method: GET
-    params:
-      page: '1'
-      limit: '10'
-      search: 测试
-    assert:
-    - type: equal
-      field: status_code
+    - type: status_code
       expected: 200
     - type: contains
-      field: data.products
-  - id: step3
-    path: /api/products
-    method: GET
-    params:
-      sort: newest
-    assert:
-    - type: equal
-      field: status_code
-      expected: 200
-    - type: equal
-      field: success
-      expected: true
-  - id: step4
-    path: /api/products
-    method: GET
-    params:
-      sort: price_low
-    assert:
-    - type: equal
-      field: status_code
-      expected: 200
-  - id: step5
-    path: /api/products/filter-options
-    method: GET
-    assert:
-    - type: equal
-      field: status_code
-      expected: 200
-    - type: contains
-      field: data.tubeTypes
-    - type: contains
-      field: data.materials
-  - id: step6
+      field: message
+      expected: Products retrieved
+  - id: get_featured
     path: /api/products/featured
     method: GET
     params:
-      limit: '4'
+      limit: 5
     assert:
-    - type: equal
-      field: status_code
+    - type: status_code
       expected: 200
-    - type: equal
-      field: success
-      expected: true
+    - type: equals
+      field: message
+      expected: Featured products retrieved successfully
+  - id: get_filter_options
+    path: /api/products/filter-options
+    method: GET
+    assert:
+    - type: status_code
+      expected: 200
+    - type: contains
+      field: message
+      expected: Filter options

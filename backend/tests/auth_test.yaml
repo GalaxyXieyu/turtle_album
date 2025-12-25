@@ -1,0 +1,14 @@
+testcase:
+  name: auth_test
+  description: 测试用户登录功能
+  host: http://localhost:8000
+  steps:
+  - id: login_step
+    path: /api/auth/login
+    method: POST
+    data:
+      password: admin123
+      username: admin
+    assert:
+    - type: status_code
+      expected: 200

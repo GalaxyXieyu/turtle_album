@@ -38,3 +38,11 @@ O.zip
 O/
 产品 O.xlsx
 kube-base64.txt
+deploy.sh
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+allure-results/

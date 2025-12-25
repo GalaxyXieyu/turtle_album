@@ -1,0 +1,29 @@
+testcase:
+  name: 产品管理接口集成测试
+  description: 测试管理员产品管理接口（需要认证）
+  host: http://localhost:8000
+  steps:
+  - id: admin_login
+    path: /api/auth/login
+    method: POST
+    data:
+      password: admin123
+      username: admin
+    assert:
+    - type: status_code
+      expected: 200
+    - type: equals
+      field: message
+      expected: Login successful
+  - id: create_product_no_auth
+    path: /api/products
+    method: POST
+    data:
+      code: TEST001
+      description: 测试产品描述
+      factory_price: 10
+      images: []
+      name: 测试产品
+    assert:
+    - type: status_code
+      expected: 403
