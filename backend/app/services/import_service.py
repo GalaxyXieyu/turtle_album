@@ -209,7 +209,7 @@ class BatchImportService:
                 try:
                     product_code = BatchImportService._clean_string(row.get('货号'))
                     if not product_code:
-                        result.warnings.append(f"Row {row_num}: Skipped due to missing product code")
+                        result.warnings.append(f"第 {row_num} 行: 跳过 - 缺少货号")
                         result.failed_count += 1
                         continue
 
@@ -273,14 +273,31 @@ class BatchImportService:
                                 product.code, temp_dir, product.id, db
                             )
                             if images_found > 0:
-                                result.warnings.append(f"Row {row_num}: Added {images_found} images for {product_code}")
+                                result.warnings.append(f"第 {row_num} 行: 货号 {product_code} 成功导入 {images_found} 张图片")
+                            else:
+                                # 未找到图片文件夹，给出明确提示
+                                all_folders = BatchImportService._get_all_folder_names(temp_dir)
+                                # 找出可能相似的文件夹名
+                                normalized_code = BatchImportService._normalize_code(product_code)
+                                similar = [f for f in all_folders if normalized_code in BatchImportService._normalize_code(f) or BatchImportService._normalize_code(f) in normalized_code]
+                                
+                                if similar:
+                                    result.warnings.append(
+                                        f"第 {row_num} 行: 货号 [{product_code}] 未找到匹配的图片文件夹，"
+                                        f"但发现相似文件夹: {similar[:3]}，请检查命名是否一致"
+                                    )
+                                else:
+                                    result.warnings.append(
+                                        f"第 {row_num} 行: 货号 [{product_code}] 在 ZIP 中未找到对应的图片文件夹，"
+                                        f"请确保 ZIP 内有名为 [{product_code}] 的文件夹"
+                                    )
 
                     result.success_count += 1
 
                 except Exception as e:
                     result.failed_count += 1
-                    code = product_code or "unknown"
-                    result.errors.append(f"Row {row_num}: Error importing {code}: {str(e)}")
+                    code = product_code or "未知"
+                    result.errors.append(f"第 {row_num} 行: 导入货号 [{code}] 失败: {str(e)}")
                     continue
             
             db.commit()
@@ -301,27 +318,63 @@ class BatchImportService:
         }
 
     @staticmethod
+    def _normalize_code(code: str) -> str:
+        """
+        规范化货号，移除数字部分的前导零，统一格式。
+        支持多种格式：
+        - O01 -> o1, O001 -> o1, O1 -> o1
+        - F-01 -> f-1, F_01 -> f_1
+        - 01 -> 1 (纯数字)
+        - abc -> abc (纯字母保持不变)
+        """
+        import re
+        code = code.strip().lower()
+        
+        # 模式1: 字母前缀 + 可选分隔符 + 数字 (如 O01, F-01, ABC_001)
+        match = re.match(r'^([A-Za-z]+)([-_]?)0*(\d+)$', code)
+        if match:
+            prefix, sep, num = match.groups()
+            return f"{prefix}{sep}{num}"
+        
+        # 模式2: 纯数字带前导零 (如 001 -> 1)
+        match = re.match(r'^0*(\d+)$', code)
+        if match:
+            return match.group(1)
+        
+        return code
+    
+    @staticmethod
+    def _get_all_folder_names(source_root: str) -> List[str]:
+        """获取 ZIP 解压后的所有文件夹名称"""
+        folders = []
+        for root, dirs, files in os.walk(source_root):
+            for dir_name in dirs:
+                folders.append(dir_name)
+        return folders
+
+    @staticmethod
     def _process_product_images(product_code: str, source_root: str, product_id: str, db: Session) -> int:
         """
         Find and process images for a product in the extracted ZIP directory.
         Looks for a folder named `product_code` (case-insensitive).
+        支持模糊匹配：O1 可以匹配 O01, O001 等
         """
         found_folder = None
+        normalized_code = BatchImportService._normalize_code(product_code.lower())
         
-        # 1. Search for folder match
+        # 1. Search for folder match (精确匹配或规范化匹配)
         for root, dirs, files in os.walk(source_root):
             for dir_name in dirs:
+                # 精确匹配
                 if dir_name.lower() == product_code.lower():
+                    found_folder = os.path.join(root, dir_name)
+                    break
+                # 规范化匹配（处理前导零差异）
+                if BatchImportService._normalize_code(dir_name.lower()) == normalized_code:
                     found_folder = os.path.join(root, dir_name)
                     break
             if found_folder:
                 break
-        
-        # 2. If not found, try loose matching (e.g. F1 -> F01 or F01 -> F1)
-        if not found_folder:
-            # Simple logic: try adding/removing leading zeros for numeric parts
-            # This is a simplified version of the logic in old scripts
-            pass 
 
         if not found_folder:
             return 0
