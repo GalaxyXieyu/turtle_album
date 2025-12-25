@@ -26,6 +26,10 @@ dist-ssr
 # Python virtual environments
 backend/venv
 
+# Database files
+*.db
+backend/backup/
+
 # Image assets
 backend/static/images/
 frontend/public/images/

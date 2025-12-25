@@ -1,0 +1,104 @@
+testcase:
+  name: Admin产品管理接口测试
+  description: 测试管理员产品管理接口
+  steps:
+  - id: setup_admin
+    path: /api/auth/login
+    method: POST
+    headers: {}
+    data:
+      username: admin
+      password: password
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: contains
+      field: data.token
+  - id: step1
+    path: /api/products
+    method: POST
+    data:
+      name: 测试产品
+      code: TEST001
+      description: 测试描述
+      shape: 圆形
+      material: PETG
+      factory_price: 10.5
+      tube_type: 口红管
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: equal
+      field: success
+      expected: true
+    - type: contains
+      field: data.code
+      expected: TEST001
+  - id: step2
+    path: /api/products/TEST001
+    method: GET
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: contains
+      field: data.name
+      expected: 测试产品
+  - id: step3
+    path: /api/products/TEST001
+    method: PUT
+    data:
+      name: 更新产品名称
+      factory_price: 15
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: contains
+      field: data.name
+      expected: 更新产品名称
+  - id: step4
+    path: /api/products
+    method: POST
+    data:
+      name: 重复产品
+      code: TEST001
+      shape: 方形
+      material: PP
+      factory_price: 5
+    assert:
+    - type: equal
+      field: status_code
+      expected: 400
+    - type: contains
+      field: message
+      expected: already exists
+  - id: step5
+    path: /api/products/TEST002
+    method: GET
+    assert:
+    - type: equal
+      field: status_code
+      expected: 404
+    - type: contains
+      field: message
+      expected: not found
+  - id: step6
+    path: /api/products/TEST001
+    method: DELETE
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: equal
+      field: success
+      expected: true
+  - id: step7
+    path: /api/products/TEST001
+    method: GET
+    assert:
+    - type: equal
+      field: status_code
+      expected: 404

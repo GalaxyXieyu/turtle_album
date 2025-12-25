@@ -1,0 +1,76 @@
+testcase:
+  name: Products公共接口测试
+  description: 测试产品公共查询接口
+  steps:
+  - id: step1
+    path: /api/products
+    method: GET
+    params:
+      page: '1'
+      limit: '10'
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: equal
+      field: success
+      expected: true
+    - type: contains
+      field: data.products
+  - id: step2
+    path: /api/products
+    method: GET
+    params:
+      page: '1'
+      limit: '10'
+      search: 测试
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: contains
+      field: data.products
+  - id: step3
+    path: /api/products
+    method: GET
+    params:
+      sort: newest
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: equal
+      field: success
+      expected: true
+  - id: step4
+    path: /api/products
+    method: GET
+    params:
+      sort: price_low
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+  - id: step5
+    path: /api/products/filter-options
+    method: GET
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: contains
+      field: data.tubeTypes
+    - type: contains
+      field: data.materials
+  - id: step6
+    path: /api/products/featured
+    method: GET
+    params:
+      limit: '4'
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: equal
+      field: success
+      expected: true

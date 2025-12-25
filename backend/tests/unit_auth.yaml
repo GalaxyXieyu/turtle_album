@@ -1,0 +1,83 @@
+unittest:
+  name: Auth模块单元测试
+  description: 测试用户认证相关功能
+  target:
+    module: app.api.routers.auth
+  cases:
+  - id: test_login_success
+    description: 测试管理员登录成功
+    inputs:
+      args:
+      - admin
+      - password
+      kwargs: {}
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: equal
+      field: success
+      expected: true
+    - type: contains
+      field: data.token
+  - id: test_login_wrong_password
+    description: 测试密码错误
+    inputs:
+      args:
+      - admin
+      - wrongpassword
+      kwargs: {}
+    assert:
+    - type: equal
+      field: status_code
+      expected: 401
+    - type: equal
+      field: success
+      expected: false
+  - id: test_login_user_not_exist
+    description: 测试用户不存在
+    inputs:
+      args:
+      - notexist
+      - password
+      kwargs: {}
+    assert:
+    - type: equal
+      field: status_code
+      expected: 401
+    - type: contains
+      field: message
+      expected: Incorrect
+  - id: test_verify_token_valid
+    description: 测试有效Token验证
+    inputs:
+      args: []
+      kwargs: {}
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: equal
+      field: data.username
+      expected: admin
+  - id: test_verify_token_invalid
+    description: 测试无效Token验证
+    inputs:
+      args: []
+      kwargs: {}
+    assert:
+    - type: equal
+      field: status_code
+      expected: 401
+  fixtures:
+    setup:
+    - type: function
+      target: app.core.security
+      action: create_test_user
+    - type: function
+      target: app.db.session
+      action: create_test_db
+    teardown:
+    - type: function
+      target: app.db.session
+      action: cleanup_test_db

@@ -1,0 +1,71 @@
+testcase:
+  name: Featured精选产品接口测试
+  description: 测试精选产品管理接口
+  steps:
+  - id: setup_admin
+    path: /api/auth/login
+    method: POST
+    data:
+      username: admin
+      password: password
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+  - id: create_product
+    path: /api/products
+    method: POST
+    data:
+      name: 精选测试产品
+      code: FEAT001
+      shape: 圆形
+      material: PETG
+      factory_price: 20
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+  - id: step1
+    path: /api/featured-products
+    method: GET
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: equal
+      field: success
+      expected: true
+  - id: step2
+    path: /api/featured-products
+    method: POST
+    data:
+      product_id: '{product_id}'
+      isActive: true
+      sortOrder: 1
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: contains
+      field: data.productId
+      expected: '{product_id}'
+  - id: step3
+    path: /api/featured-products/{featured_id}
+    method: PUT
+    data:
+      sortOrder: 5
+      isActive: false
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+  - id: step4
+    path: /api/featured-products/{featured_id}
+    method: DELETE
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: equal
+      field: success
+      expected: true

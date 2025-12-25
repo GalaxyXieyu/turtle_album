@@ -1,0 +1,50 @@
+testcase:
+  name: BatchImport批量导入接口测试
+  description: 测试产品批量导入接口
+  steps:
+  - id: setup_admin
+    path: /api/auth/login
+    method: POST
+    data:
+      username: admin
+      password: password
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+  - id: step1
+    path: /api/products/batch-import/template
+    method: GET
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: equal
+      field: headers.content-type
+      expected: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+  - id: step2
+    path: /api/products/batch-import
+    method: POST
+    files:
+      excel_file: test_template.xlsx
+    assert:
+    - type: equal
+      field: status_code
+      expected: 200
+    - type: equal
+      field: success
+      expected: true
+    - type: contains
+      field: data.imported
+  - id: step3
+    path: /api/products/batch-import
+    method: POST
+    files:
+      excel_file: invalid.txt
+    assert:
+    - type: equal
+      field: status_code
+      expected: 400
+    - type: contains
+      field: detail
+      expected: Invalid file type

@@ -1,10 +1,11 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 import os
 import logging
 from datetime import datetime
+from pathlib import Path
 
 from app.db.session import get_db, create_tables
 from app.core.security import create_admin_user
@@ -46,14 +47,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
+# 静态文件目录配置（支持 PVC 挂载）
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "static/images")
+STATIC_DIR = os.path.dirname(UPLOAD_DIR) if "/" in UPLOAD_DIR else "static"
+
+# 确保目录存在
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 if not os.path.exists("static"):
     os.makedirs("static")
-if not os.path.exists("static/images"):
-    os.makedirs("static/images")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/images", StaticFiles(directory="static/images"), name="images")
+# Mount static files
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/images", StaticFiles(directory=UPLOAD_DIR), name="images")
 
 # Create tables and admin user on startup
 @app.on_event("startup")
@@ -114,12 +119,29 @@ app.include_router(featured.router, prefix="/api/featured-products", tags=["Feat
 app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])
 app.include_router(imports.router, prefix="/api/products/batch-import", tags=["Imports"])
 
-# Root endpoint
-@app.get("/")
-async def root():
-    return {"message": "Glam Cart Builder API", "version": "1.0.0", "docs": "/docs"}
-
-# Health check
+# Health check (放在静态文件之前)
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+# 前端静态文件服务（生产环境）
+FRONTEND_DIR = Path(__file__).parent.parent / "frontend_dist"
+
+if FRONTEND_DIR.exists():
+    # 挂载前端静态资源
+    app.mount("/assets", StaticFiles(directory=FRONTEND_DIR / "assets"), name="frontend_assets")
+    
+    # SPA fallback: 所有非 API 路由返回 index.html
+    @app.get("/{full_path:path}")
+    async def serve_spa(request: Request, full_path: str):
+        # API 和静态文件路由已经在上面处理
+        file_path = FRONTEND_DIR / full_path
+        if file_path.exists() and file_path.is_file():
+            return FileResponse(file_path)
+        # 返回 index.html 支持前端路由
+        return FileResponse(FRONTEND_DIR / "index.html")
+else:
+    # 开发环境：返回 API 信息
+    @app.get("/")
+    async def root():
+        return {"message": "Glam Cart Builder API", "version": "1.0.0", "docs": "/docs"}

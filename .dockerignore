@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Node
+frontend/node_modules
+frontend/dist
+
+# Python
+backend/venv
+backend/.venv
+backend/__pycache__
+backend/**/__pycache__
+backend/*.pyc
+backend/.pytest_cache
+
+# Database
+*.db
+backend/backup
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+*.log
+backend/nohup.out
+
+# Local env files (will use container env vars)
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+backend/tests
+backend/http-client
+
+# OS files
+.DS_Store
+Thumbs.db
