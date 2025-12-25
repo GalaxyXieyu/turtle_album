@@ -3,6 +3,9 @@ import os
 from pathlib import Path
 from urllib.parse import urlparse
 
+# 获取实际的图片目录（支持 Docker 环境）
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "static/images")
+
 def split_category_values(value_list):
     """展开分隔符分割的分类值"""
     expanded_set = set()
@@ -69,26 +72,18 @@ def _to_local_static_path(image_url: str) -> str:
     return os.path.join("static", "images", path)
 
 def _image_has_small_variant(product_code: str, image_url: str) -> bool:
-    local_path = _to_local_static_path(image_url)
-    if not local_path:
+    """检查图片是否有 small 变体，支持 Docker 环境"""
+    if not image_url:
         return False
-
-    p = Path(local_path)
+    
+    # 从 URL 中提取文件名
+    p = Path(image_url)
     stem = p.stem
     if not stem:
         return False
-
-    parts = p.parts
-    try:
-        idx = parts.index("images")
-        code_in_path = parts[idx + 1] if len(parts) > idx + 1 else ""
-        size_in_path = parts[idx + 2] if len(parts) > idx + 2 else ""
-        if code_in_path and size_in_path in {"thumbnail", "small", "medium", "large"}:
-            return _file_exists(local_path)
-    except ValueError:
-        pass
-
-    base_dir = os.path.join("static", "images", product_code, "small")
+    
+    # 检查 UPLOAD_DIR 下的 small 目录
+    base_dir = os.path.join(UPLOAD_DIR, product_code, "small")
     return _file_exists(os.path.join(base_dir, f"{stem}.webp")) or _file_exists(os.path.join(base_dir, f"{stem}.jpg"))
 
 def convert_product_to_response(product: Product) -> dict:

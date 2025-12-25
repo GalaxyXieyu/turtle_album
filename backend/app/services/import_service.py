@@ -200,6 +200,10 @@ class BatchImportService:
                 return {"success": False, "message": f"Failed to process ZIP file: {str(e)}"}
 
         # 3. Process Rows
+        # 收集未匹配的货号，用于最后汇总
+        unmatched_codes = []
+        all_zip_folders = BatchImportService._get_all_folder_names(temp_dir) if temp_dir else []
+        
         try:
             for index, row in df.iterrows():
                 result.total_processed += 1
@@ -275,22 +279,8 @@ class BatchImportService:
                             if images_found > 0:
                                 result.warnings.append(f"第 {row_num} 行: 货号 {product_code} 成功导入 {images_found} 张图片")
                             else:
-                                # 未找到图片文件夹，给出明确提示
-                                all_folders = BatchImportService._get_all_folder_names(temp_dir)
-                                # 找出可能相似的文件夹名
-                                normalized_code = BatchImportService._normalize_code(product_code)
-                                similar = [f for f in all_folders if normalized_code in BatchImportService._normalize_code(f) or BatchImportService._normalize_code(f) in normalized_code]
-                                
-                                if similar:
-                                    result.warnings.append(
-                                        f"第 {row_num} 行: 货号 [{product_code}] 未找到匹配的图片文件夹，"
-                                        f"但发现相似文件夹: {similar[:3]}，请检查命名是否一致"
-                                    )
-                                else:
-                                    result.warnings.append(
-                                        f"第 {row_num} 行: 货号 [{product_code}] 在 ZIP 中未找到对应的图片文件夹，"
-                                        f"请确保 ZIP 内有名为 [{product_code}] 的文件夹"
-                                    )
+                                # 记录未匹配的货号
+                                unmatched_codes.append(product_code)
 
                     result.success_count += 1
 
@@ -307,6 +297,20 @@ class BatchImportService:
         finally:
             if temp_dir and os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
+
+        # 如果有未匹配的货号，添加汇总提示
+        if unmatched_codes and all_zip_folders:
+            # 过滤出实际的产品文件夹（排除 thumbnail/small 等子目录）
+            product_folders = [f for f in all_zip_folders if not f in {'thumbnail', 'small', 'medium', 'large', 'carousel'}]
+            result.warnings.append(
+                f"⚠️ 以下 {len(unmatched_codes)} 个货号未找到对应图片文件夹: {unmatched_codes}"
+            )
+            result.warnings.append(
+                f"📁 ZIP 中的文件夹列表: {sorted(product_folders)}"
+            )
+            result.warnings.append(
+                "💡 提示: 请检查 Excel 货号与 ZIP 文件夹名是否一致（支持自动匹配 O1↔O01 格式）"
+            )
 
         return {
             "success": True,
