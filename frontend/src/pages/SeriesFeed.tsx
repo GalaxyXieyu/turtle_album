@@ -186,7 +186,7 @@ const SeriesFeed: React.FC = () => {
                 to={`/breeder/${b.id}`}
                 className="mb-3 inline-block w-full break-inside-avoid overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)] hover:border-neutral-300"
               >
-                <div className="relative aspect-square bg-neutral-100">
+                <div className="relative aspect-[4/5] bg-neutral-100">
                   {mainImage?.url ? (
                     <img src={mainImage.url} alt={mainImage.alt || b.code} className="h-full w-full object-cover" />
                   ) : (
@@ -195,21 +195,19 @@ const SeriesFeed: React.FC = () => {
                   <div className="absolute right-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-xs text-black">
                     {sexLabel(b.sex)}
                   </div>
+                  {typeof b.offspringUnitPrice === 'number' ? (
+                    <div className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-[#FFD400]">
+                      子代 ¥ {b.offspringUnitPrice}
+                    </div>
+                  ) : null}
                 </div>
 
-                <div className="p-3.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="truncate text-base font-semibold text-neutral-900 sm:text-sm">{b.name}</div>
-                      <div className="mt-0.5 text-sm font-semibold text-neutral-900 sm:text-xs">{b.code}</div>
-                    </div>
-                    {typeof b.offspringUnitPrice === 'number' ? (
-                      <div className="shrink-0 text-base font-semibold text-[#FFD400] sm:text-sm">子代 ¥ {b.offspringUnitPrice}</div>
-                    ) : null}
-                  </div>
-
+                <div className="p-3">
+                  <div className="text-sm font-semibold text-neutral-900">{b.code}</div>
                   {b.description ? (
-                    <div className="mt-2 line-clamp-2 text-sm text-neutral-600/80 sm:text-xs">{b.description}</div>
+                    <div className="mt-1 inline-flex max-w-full rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
+                      <span className="truncate">{b.description}</span>
+                    </div>
                   ) : null}
                 </div>
               </Link>
