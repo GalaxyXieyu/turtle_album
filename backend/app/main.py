@@ -12,7 +12,7 @@ from app.core.security import create_admin_user
 from app.schemas.schemas import ErrorResponse
 
 # Import routers
-from app.api.routers import auth, products, admin, carousels, featured, settings, imports, series, breeders, admin_series, admin_records
+from app.api.routers import auth, products, admin, carousels, featured, settings, imports, series, breeders, admin_series, admin_records, images
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -74,7 +74,7 @@ if not os.path.exists("static"):
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-app.mount("/images", StaticFiles(directory=UPLOAD_DIR), name="images")
+# NOTE: Do not mount UPLOAD_DIR directly; serve via API for future auth control.
 
 # Initialize schema on startup.
 # This project uses SQLAlchemy `create_all()` (no Alembic migrations).
@@ -139,6 +139,7 @@ app.include_router(imports.router, prefix="/api/products/batch-import", tags=["I
 # Turtle-album public APIs
 app.include_router(series.router, prefix="/api/series", tags=["Series"])
 app.include_router(breeders.router, prefix="/api/breeders", tags=["Breeders"])
+app.include_router(images.router, prefix="/api", tags=["Images"])
 
 # Turtle-album admin APIs
 app.include_router(admin_series.router, prefix="/api/admin/series", tags=["Admin Series"])

@@ -99,9 +99,15 @@ def convert_product_to_response(product: Product) -> dict:
         if not url:
             continue
 
-        # Turtle-album seed/demo may use external image URLs; don't require local variants.
+        # Turtle-album may use:
+        # - external URLs
+        # - API-served originals (e.g. /api/images/xxx.jpg)
+        # - local optimized variants under /static/images/...
+        # For local paths we should not drop images just because small variants don't exist.
         if not (url.startswith("http://") or url.startswith("https://")):
-            if not _image_has_small_variant(product.code, url):
+            if url.startswith("/api/images/") or url.startswith("/images/") or url.startswith("/static/"):
+                pass
+            elif not _image_has_small_variant(product.code, url):
                 continue
 
         images.append(

@@ -130,7 +130,7 @@ def main():
             dst_path = upload_dir / dst_name
             shutil.copyfile(src, dst_path)
 
-            image_url = f"/images/{dst_name}"
+            image_url = f"/api/images/{dst_name}"
             _upsert_breeder(
                 db,
                 series_id=series.id,
