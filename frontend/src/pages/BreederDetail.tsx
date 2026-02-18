@@ -41,31 +41,43 @@ const BreederDetail: React.FC = () => {
         ) : null}
 
         {breederQ.data ? (
-          <div className="rounded-xl border border-neutral-200 bg-white p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-2xl font-semibold">{breederQ.data.name}</div>
-                <div className="mt-1 text-xs text-neutral-500">{breederQ.data.code}</div>
-              </div>
-              <div className="rounded-full border border-neutral-300 px-3 py-1 text-xs">
-                {breederQ.data.sex === 'female' ? '母' : breederQ.data.sex === 'male' ? '公' : '-'}
-              </div>
-            </div>
+          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+            {(() => {
+              const mainImage = (breederQ.data.images || []).find((i) => i.type === 'main') || (breederQ.data.images || [])[0];
+              if (!mainImage?.url) return null;
+              return (
+                <div className="relative bg-neutral-100">
+                  <img src={mainImage.url} alt={mainImage.alt || breederQ.data.code} className="h-auto w-full object-cover" />
+                  <div className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs text-black">
+                    {breederQ.data.sex === 'female' ? '母' : breederQ.data.sex === 'male' ? '公' : '-'}
+                  </div>
+                </div>
+              );
+            })()}
 
-            {breederQ.data.description ? (
-              <div className="mt-3 text-sm text-neutral-800 whitespace-pre-wrap">{breederQ.data.description}</div>
-            ) : null}
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-2xl font-semibold text-neutral-900">{breederQ.data.name}</div>
+                  <div className="mt-1 text-xs text-neutral-500">{breederQ.data.code}</div>
+                </div>
+                {typeof breederQ.data.offspringUnitPrice === 'number' ? (
+                  <div className="shrink-0 text-lg font-semibold text-[#D9A516]">¥ {breederQ.data.offspringUnitPrice}</div>
+                ) : null}
+              </div>
 
-            <div className="mt-4 flex flex-wrap gap-2 text-xs text-neutral-700">
-              {typeof breederQ.data.offspringUnitPrice === 'number' ? (
-                <span className="rounded-md bg-neutral-100 px-2 py-1">¥ {breederQ.data.offspringUnitPrice}</span>
+              {breederQ.data.description ? (
+                <div className="mt-3 text-sm text-neutral-800 whitespace-pre-wrap">{breederQ.data.description}</div>
               ) : null}
-              {breederQ.data.sireCode ? (
-                <span className="rounded-md bg-neutral-100 px-2 py-1">父: {breederQ.data.sireCode}</span>
-              ) : null}
-              {breederQ.data.damCode ? (
-                <span className="rounded-md bg-neutral-100 px-2 py-1">母: {breederQ.data.damCode}</span>
-              ) : null}
+
+              <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-neutral-700">
+                {breederQ.data.sireCode ? (
+                  <span className="rounded-full bg-neutral-100 px-2 py-1">父 {breederQ.data.sireCode}</span>
+                ) : null}
+                {breederQ.data.damCode ? (
+                  <span className="rounded-full bg-neutral-100 px-2 py-1">母 {breederQ.data.damCode}</span>
+                ) : null}
+              </div>
             </div>
           </div>
         ) : null}

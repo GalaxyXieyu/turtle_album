@@ -45,6 +45,15 @@ def seed_turtle_album(db_session):
     db_session.add_all([s1, s2])
     db_session.flush()  # get ids
 
+    demo_images = [
+        # XHS-like monochrome + yellow accent demo images (generated)
+        "https://api3.superbed.cn/static/images/2026/0218/c9/6995820a556e27f1c93a2cc9.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/cb/69958213556e27f1c93a2ccb.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/cd/6995821c556e27f1c93a2ccd.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/cf/6995822a556e27f1c93a2ccf.jpg",
+    ]
+    demo_idx = 0
+
     def breeder(
         *,
         series,
@@ -73,10 +82,14 @@ def seed_turtle_album(db_session):
         )
         db_session.add(p)
         db_session.flush()
+        nonlocal demo_idx
+        img_url = demo_images[demo_idx % len(demo_images)]
+        demo_idx += 1
+
         db_session.add(
             ProductImage(
                 product_id=p.id,
-                url="/static/images/demo-turtle.webp",
+                url=img_url,
                 alt=f"{code} main",
                 type="main",
                 sort_order=0,
@@ -84,10 +97,33 @@ def seed_turtle_album(db_session):
         )
         return p
 
-    f1 = breeder(series=s1, name="CB Female #1", code="CBF-001", sex="female", price=1999.0)
-    m1 = breeder(series=s1, name="CB Male #1", code="CBM-001", sex="male")
-    f2 = breeder(series=s1, name="CB Female #2", code="CBF-002", sex="female", price=2499.0, sire_code="CBM-001")
-    m2 = breeder(series=s2, name="HC Male #1", code="HCM-001", sex="male")
+    f1 = breeder(
+        series=s1,
+        name="CB Female #1",
+        code="CBF-001",
+        sex="female",
+        price=1999.0,
+    )
+    m1 = breeder(
+        series=s1,
+        name="CB Male #1",
+        code="CBM-001",
+        sex="male",
+    )
+    f2 = breeder(
+        series=s1,
+        name="CB Female #2",
+        code="CBF-002",
+        sex="female",
+        price=2499.0,
+        sire_code="CBM-001",
+    )
+    m2 = breeder(
+        series=s2,
+        name="HC Male #1",
+        code="HCM-001",
+        sex="male",
+    )
 
     # Records
     db_session.add(
