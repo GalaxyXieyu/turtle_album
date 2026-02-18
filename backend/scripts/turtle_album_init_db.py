@@ -45,8 +45,16 @@ def seed_turtle_album(db_session):
     db_session.add_all([s1, s2])
     db_session.flush()  # get ids
 
-    # Use a single placeholder image everywhere for layout/spacing preview.
-    demo_images = [
+    # Seed images:
+    # - females use user-provided real turtle photos
+    # - others use a single placeholder for consistent layout preview
+    female_images = [
+        "https://api3.superbed.cn/static/images/2026/0218/3a/69959618556e27f1c93a2e3a.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/3b/69959619556e27f1c93a2e3b.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/3c/6995961a556e27f1c93a2e3c.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/3d/6995961b556e27f1c93a2e3d.jpg",
+    ]
+    placeholder_images = [
         "https://api3.superbed.cn/static/images/2026/0218/0d/6995936e556e27f1c93a2e0d.jpg"
     ]
     demo_idx = 0
@@ -80,7 +88,10 @@ def seed_turtle_album(db_session):
         db_session.add(p)
         db_session.flush()
         nonlocal demo_idx
-        img_url = demo_images[demo_idx % len(demo_images)]
+        if sex == "female":
+            img_url = female_images[demo_idx % len(female_images)]
+        else:
+            img_url = placeholder_images[0]
         demo_idx += 1
 
         db_session.add(
