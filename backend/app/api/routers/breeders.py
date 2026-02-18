@@ -92,6 +92,11 @@ async def get_breeder_records(
             .order_by(MatingRecord.mated_at.desc())
             .all()
         )
+        male_ids = {r.male_id for r in matings}
+        male_map = {
+            p.id: p
+            for p in db.query(Product).filter(Product.id.in_(male_ids)).all()
+        }
         eggs = (
             db.query(EggRecord)
             .filter(EggRecord.female_id == breeder.id)
@@ -103,6 +108,15 @@ async def get_breeder_records(
                 "id": r.id,
                 "femaleId": r.female_id,
                 "maleId": r.male_id,
+                "male": (
+                    {
+                        "id": male_map.get(r.male_id).id,
+                        "name": male_map.get(r.male_id).name,
+                        "code": male_map.get(r.male_id).code,
+                    }
+                    if male_map.get(r.male_id)
+                    else None
+                ),
                 "matedAt": r.mated_at.isoformat() if r.mated_at else None,
                 "notes": r.notes,
                 "createdAt": r.created_at.isoformat() if r.created_at else None,
@@ -127,11 +141,25 @@ async def get_breeder_records(
             .order_by(MatingRecord.mated_at.desc())
             .all()
         )
+        female_ids = {r.female_id for r in matings}
+        female_map = {
+            p.id: p
+            for p in db.query(Product).filter(Product.id.in_(female_ids)).all()
+        }
         data["matingRecordsAsMale"] = [
             {
                 "id": r.id,
                 "femaleId": r.female_id,
                 "maleId": r.male_id,
+                "female": (
+                    {
+                        "id": female_map.get(r.female_id).id,
+                        "name": female_map.get(r.female_id).name,
+                        "code": female_map.get(r.female_id).code,
+                    }
+                    if female_map.get(r.female_id)
+                    else None
+                ),
                 "matedAt": r.mated_at.isoformat() if r.mated_at else None,
                 "notes": r.notes,
                 "createdAt": r.created_at.isoformat() if r.created_at else None,

@@ -104,14 +104,39 @@ const BreederDetail: React.FC = () => {
                     {(recordsQ.data.matingRecordsAsFemale || []).map((r) => (
                       <div key={r.id} className="rounded-lg border border-neutral-200 p-3">
                         <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
-                        <div className="mt-1 text-sm">配对：母 {r.femaleId.slice(0, 6)} / 公 {r.maleId.slice(0, 6)}</div>
+                        <div className="mt-1 text-sm">
+                          配对：母 {r.femaleId.slice(0, 6)} / 公{' '}
+                          {r.male ? (
+                            <Link
+                              to={`/breeder/${r.male.id}`}
+                              className="underline decoration-neutral-300 hover:decoration-neutral-600"
+                            >
+                              {r.male.code}
+                            </Link>
+                          ) : (
+                            r.maleId.slice(0, 6)
+                          )}
+                        </div>
                         {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
                       </div>
                     ))}
                     {(recordsQ.data.matingRecordsAsMale || []).map((r) => (
                       <div key={r.id} className="rounded-lg border border-neutral-200 p-3">
                         <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
-                        <div className="mt-1 text-sm">配对：母 {r.femaleId.slice(0, 6)} / 公 {r.maleId.slice(0, 6)}</div>
+                        <div className="mt-1 text-sm">
+                          配对：母{' '}
+                          {r.female ? (
+                            <Link
+                              to={`/breeder/${r.female.id}`}
+                              className="underline decoration-neutral-300 hover:decoration-neutral-600"
+                            >
+                              {r.female.code}
+                            </Link>
+                          ) : (
+                            r.femaleId.slice(0, 6)
+                          )}{' '}
+                          / 公 {r.maleId.slice(0, 6)}
+                        </div>
                         {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
                       </div>
                     ))}

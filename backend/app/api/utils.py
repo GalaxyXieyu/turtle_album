@@ -96,8 +96,14 @@ def convert_product_to_response(product: Product) -> dict:
     images = []
     for img in sorted(product.images, key=lambda x: x.sort_order):
         url = getattr(img, "url", None)
-        if not url or not _image_has_small_variant(product.code, url):
+        if not url:
             continue
+
+        # Turtle-album seed/demo may use external image URLs; don't require local variants.
+        if not (url.startswith("http://") or url.startswith("https://")):
+            if not _image_has_small_variant(product.code, url):
+                continue
+
         images.append(
             {
                 "id": img.id,

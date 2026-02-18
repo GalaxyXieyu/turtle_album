@@ -34,6 +34,8 @@ export interface MatingRecord {
   id: string;
   femaleId: string;
   maleId: string;
+  male?: { id: string; name: string; code: string } | null;
+  female?: { id: string; name: string; code: string } | null;
   matedAt: string | null;
   notes?: string | null;
   createdAt?: string | null;

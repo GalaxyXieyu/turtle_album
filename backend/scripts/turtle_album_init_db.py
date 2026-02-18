@@ -45,18 +45,9 @@ def seed_turtle_album(db_session):
     db_session.add_all([s1, s2])
     db_session.flush()  # get ids
 
+    # Use a single placeholder image everywhere for layout/spacing preview.
     demo_images = [
-        # XHS-like monochrome + yellow accent demo images (generated)
-        "https://api3.superbed.cn/static/images/2026/0218/c9/6995820a556e27f1c93a2cc9.jpg",
-        "https://api3.superbed.cn/static/images/2026/0218/cb/69958213556e27f1c93a2ccb.jpg",
-        "https://api3.superbed.cn/static/images/2026/0218/cd/6995821c556e27f1c93a2ccd.jpg",
-        "https://api3.superbed.cn/static/images/2026/0218/cf/6995822a556e27f1c93a2ccf.jpg",
-        "https://api3.superbed.cn/static/images/2026/0218/02/69959283556e27f1c93a2e02.jpg",
-        "https://api3.superbed.cn/static/images/2026/0218/03/6995928d556e27f1c93a2e03.jpg",
-        "https://api3.superbed.cn/static/images/2026/0218/04/69959298556e27f1c93a2e04.jpg",
-        "https://api3.superbed.cn/static/images/2026/0218/05/699592a1556e27f1c93a2e05.jpg",
-        "https://api3.superbed.cn/static/images/2026/0218/06/699592ab556e27f1c93a2e06.jpg",
-        "https://api3.superbed.cn/static/images/2026/0218/07/699592b4556e27f1c93a2e07.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/0d/6995936e556e27f1c93a2e0d.jpg"
     ]
     demo_idx = 0
 
