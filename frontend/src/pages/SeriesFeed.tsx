@@ -34,7 +34,7 @@ const SeriesFeed: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <div className="mx-auto max-w-3xl px-4 py-6">
+      <div className="mx-auto max-w-3xl px-4 pb-6 pt-[calc(env(safe-area-inset-top)+32px)]">
         <header className="mb-6">
           <div className="text-xs uppercase tracking-widest text-neutral-500">turtle album</div>
           <h1 className="mt-2 text-2xl font-semibold">西瑞 · 果核选育溯源记录</h1>

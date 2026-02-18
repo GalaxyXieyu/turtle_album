@@ -29,7 +29,7 @@ const BreederDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <div className="mx-auto max-w-3xl px-4 py-6">
+      <div className="mx-auto max-w-3xl px-4 pb-6 pt-[calc(env(safe-area-inset-top)+32px)]">
         <div className="mb-6 flex items-center justify-between">
           <Link to="/" className="text-sm text-neutral-600 hover:underline">← 返回</Link>
           <div className="text-right">
