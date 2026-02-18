@@ -95,71 +95,99 @@ const BreederDetail: React.FC = () => {
           ) : null}
 
           {recordsQ.data ? (
-            <div className="grid gap-3">
+            <div className="space-y-4">
               <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                <div className="mb-2 text-sm font-medium">交配</div>
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="text-sm font-medium">交配</div>
+                  <div className="text-xs text-neutral-500">
+                    {(recordsQ.data.matingRecordsAsFemale || []).length + (recordsQ.data.matingRecordsAsMale || []).length} 条
+                  </div>
+                </div>
+
                 {(recordsQ.data.matingRecordsAsFemale || []).length === 0 &&
                 (recordsQ.data.matingRecordsAsMale || []).length === 0 ? (
                   <div className="text-sm text-neutral-600">暂无交配记录</div>
                 ) : (
-                  <div className="space-y-2">
-                    {(recordsQ.data.matingRecordsAsFemale || []).map((r) => (
-                      <div key={r.id} className="rounded-lg border border-neutral-200 p-3">
-                        <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
-                        <div className="mt-1 text-sm">
-                          配对：母 {r.femaleId.slice(0, 6)} / 公{' '}
-                          {r.male ? (
-                            <Link
-                              to={`/breeder/${r.male.id}`}
-                              className="underline decoration-neutral-300 hover:decoration-neutral-600"
-                            >
-                              {r.male.code} · {r.male.name}
-                            </Link>
-                          ) : (
-                            r.maleId.slice(0, 6)
-                          )}
+                  <div className="relative pl-4">
+                    <div className="absolute left-1 top-0 h-full w-px bg-neutral-200" />
+
+                    <div className="space-y-3">
+                      {(recordsQ.data.matingRecordsAsFemale || []).map((r) => (
+                        <div key={r.id} className="relative">
+                          <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#F5C542]" />
+                          <div className="rounded-xl border border-neutral-200 bg-white p-3">
+                            <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
+                            <div className="mt-1 text-sm">
+                              配对：母 {r.femaleId.slice(0, 6)} / 公{' '}
+                              {r.male ? (
+                                <Link
+                                  to={`/breeder/${r.male.id}`}
+                                  className="font-medium underline decoration-neutral-300 hover:decoration-neutral-600"
+                                >
+                                  {r.male.code} · {r.male.name}
+                                </Link>
+                              ) : (
+                                r.maleId.slice(0, 6)
+                              )}
+                            </div>
+                            {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
+                          </div>
                         </div>
-                        {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
-                      </div>
-                    ))}
-                    {(recordsQ.data.matingRecordsAsMale || []).map((r) => (
-                      <div key={r.id} className="rounded-lg border border-neutral-200 p-3">
-                        <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
-                        <div className="mt-1 text-sm">
-                          配对：母{' '}
-                          {r.female ? (
-                            <Link
-                              to={`/breeder/${r.female.id}`}
-                              className="underline decoration-neutral-300 hover:decoration-neutral-600"
-                            >
-                              {r.female.code} · {r.female.name}
-                            </Link>
-                          ) : (
-                            r.femaleId.slice(0, 6)
-                          )}{' '}
-                          / 公 {r.maleId.slice(0, 6)}
+                      ))}
+
+                      {(recordsQ.data.matingRecordsAsMale || []).map((r) => (
+                        <div key={r.id} className="relative">
+                          <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#F5C542]" />
+                          <div className="rounded-xl border border-neutral-200 bg-white p-3">
+                            <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
+                            <div className="mt-1 text-sm">
+                              配对：母{' '}
+                              {r.female ? (
+                                <Link
+                                  to={`/breeder/${r.female.id}`}
+                                  className="font-medium underline decoration-neutral-300 hover:decoration-neutral-600"
+                                >
+                                  {r.female.code} · {r.female.name}
+                                </Link>
+                              ) : (
+                                r.femaleId.slice(0, 6)
+                              )}{' '}
+                              / 公 {r.maleId.slice(0, 6)}
+                            </div>
+                            {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
+                          </div>
                         </div>
-                        {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
 
               {recordsQ.data.sex === 'female' ? (
                 <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                  <div className="mb-2 text-sm font-medium">下蛋</div>
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium">下蛋</div>
+                    <div className="text-xs text-neutral-500">{(recordsQ.data.eggRecords || []).length} 条</div>
+                  </div>
+
                   {(recordsQ.data.eggRecords || []).length === 0 ? (
                     <div className="text-sm text-neutral-600">暂无下蛋记录</div>
                   ) : (
-                    <div className="space-y-2">
-                      {(recordsQ.data.eggRecords || []).map((r) => (
-                        <div key={r.id} className="rounded-lg border border-neutral-200 p-3">
-                          <div className="text-xs text-neutral-500">{fmt(r.laidAt)}</div>
-                          <div className="mt-1 text-sm">数量：{typeof r.count === 'number' ? r.count : '-'}</div>
-                          {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
-                        </div>
-                      ))}
+                    <div className="relative pl-4">
+                      <div className="absolute left-1 top-0 h-full w-px bg-neutral-200" />
+
+                      <div className="space-y-3">
+                        {(recordsQ.data.eggRecords || []).map((r) => (
+                          <div key={r.id} className="relative">
+                            <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#F5C542]" />
+                            <div className="rounded-xl border border-neutral-200 bg-white p-3">
+                              <div className="text-xs text-neutral-500">{fmt(r.laidAt)}</div>
+                              <div className="mt-1 text-sm">数量：{typeof r.count === 'number' ? r.count : '-'}</div>
+                              {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
