@@ -119,22 +119,24 @@ const BreederDetail: React.FC = () => {
                 )}
               </div>
 
-              <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                <div className="mb-2 text-sm font-medium">下蛋</div>
-                {(recordsQ.data.eggRecords || []).length === 0 ? (
-                  <div className="text-sm text-neutral-600">暂无下蛋记录</div>
-                ) : (
-                  <div className="space-y-2">
-                    {(recordsQ.data.eggRecords || []).map((r) => (
-                      <div key={r.id} className="rounded-lg border border-neutral-200 p-3">
-                        <div className="text-xs text-neutral-500">{fmt(r.laidAt)}</div>
-                        <div className="mt-1 text-sm">数量：{typeof r.count === 'number' ? r.count : '-'}</div>
-                        {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {recordsQ.data.sex === 'female' ? (
+                <div className="rounded-xl border border-neutral-200 bg-white p-4">
+                  <div className="mb-2 text-sm font-medium">下蛋</div>
+                  {(recordsQ.data.eggRecords || []).length === 0 ? (
+                    <div className="text-sm text-neutral-600">暂无下蛋记录</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {(recordsQ.data.eggRecords || []).map((r) => (
+                        <div key={r.id} className="rounded-lg border border-neutral-200 p-3">
+                          <div className="text-xs text-neutral-500">{fmt(r.laidAt)}</div>
+                          <div className="mt-1 text-sm">数量：{typeof r.count === 'number' ? r.count : '-'}</div>
+                          {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
