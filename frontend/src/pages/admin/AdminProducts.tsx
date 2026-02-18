@@ -886,25 +886,35 @@ const AdminProducts = () => {
 
       createProductMutation.mutate(backendProductData, {
         onSuccess: async (response) => {
+          let created = response;
+
           // Upload images if any
           if (imageUploads.length > 0 && response?.id) {
             const filesToUpload = imageUploads.filter(upload => upload.file.size > 0); // Filter out placeholder files
             if (filesToUpload.length > 0) {
               try {
-                await uploadImagesMutation.mutateAsync({
+                const uploaded = await uploadImagesMutation.mutateAsync({
                   productId: response.id,
                   files: filesToUpload.map(upload => upload.file)
                 });
+                created = { ...response, images: uploaded.images };
               } catch (error) {
                 console.error('Failed to upload images:', error);
               }
             }
           }
 
+          // After creation, jump into edit/detail view so images can be managed (set main/delete/reorder).
           setIsCreateDialogOpen(false);
-          resetImages();
           setSelectedFunctionalDesigns([]);
           createForm.reset();
+
+          if (created?.id) {
+            setSelectedProduct(created as any);
+            setIsEditMode(true);
+            setIsProductDetailOpen(true);
+            initImagesFromProduct(created as any);
+          }
         }
       });
     } catch (error) {
