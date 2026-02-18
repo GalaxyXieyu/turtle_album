@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from typing import Optional
 
 from app.db.session import get_db
@@ -122,7 +123,7 @@ async def admin_delete_series(
     db.delete(series)
     try:
         db.commit()
-    except Exception as e:
+    except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=400, detail="Cannot delete series with existing breeders")
 
