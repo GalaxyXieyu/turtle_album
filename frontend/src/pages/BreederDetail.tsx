@@ -111,7 +111,7 @@ const BreederDetail: React.FC = () => {
                               to={`/breeder/${r.male.id}`}
                               className="underline decoration-neutral-300 hover:decoration-neutral-600"
                             >
-                              {r.male.code}
+                              {r.male.code} · {r.male.name}
                             </Link>
                           ) : (
                             r.maleId.slice(0, 6)
@@ -130,7 +130,7 @@ const BreederDetail: React.FC = () => {
                               to={`/breeder/${r.female.id}`}
                               className="underline decoration-neutral-300 hover:decoration-neutral-600"
                             >
-                              {r.female.code}
+                              {r.female.code} · {r.female.name}
                             </Link>
                           ) : (
                             r.femaleId.slice(0, 6)
