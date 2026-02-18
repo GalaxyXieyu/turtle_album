@@ -4,6 +4,8 @@ import { Link, useParams } from 'react-router-dom';
 
 import WeChatContactFab from '@/components/turtle-album/WeChatContactFab';
 
+import { createImageUrl } from '@/lib/api';
+
 import { turtleAlbumService } from '@/services/turtleAlbumService';
 
 const fmt = (iso?: string | null) => {
@@ -60,7 +62,7 @@ const BreederDetail: React.FC = () => {
               return (
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]">
                   <div className="relative aspect-square bg-neutral-100">
-                    <img src={mainImage.url} alt={mainImage.alt || breederQ.data.code} className="h-full w-full object-cover" />
+                    <img src={createImageUrl(mainImage.url)} alt={mainImage.alt || breederQ.data.code} className="h-full w-full object-cover" />
                     <div className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs text-black">
                       {breederQ.data.sex === 'female' ? '母' : breederQ.data.sex === 'male' ? '公' : '-'}
                     </div>

@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 
 import WeChatContactFab from '@/components/turtle-album/WeChatContactFab';
 
+import { createImageUrl } from '@/lib/api';
+
 import { turtleAlbumService } from '@/services/turtleAlbumService';
 import type { Sex } from '@/types/turtleAlbum';
 
@@ -185,7 +187,7 @@ const SeriesFeed: React.FC = () => {
               >
                 <div className="relative aspect-[4/5] bg-neutral-100">
                   {mainImage?.url ? (
-                    <img src={mainImage.url} alt={mainImage.alt || b.code} className="h-full w-full object-cover" />
+                    <img src={createImageUrl(mainImage.url)} alt={mainImage.alt || b.code} className="h-full w-full object-cover" />
                   ) : (
                     <div className="h-full w-full bg-neutral-100" />
                   )}
