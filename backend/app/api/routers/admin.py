@@ -166,6 +166,14 @@ async def upload_product_images(
         ProductImage.product_id == product.id
     ).scalar() or -1
 
+    # If a new main image is uploaded, demote any existing main.
+    if any(img.get("type") == "main" for img in saved_images_info):
+        db.query(ProductImage).filter(
+            ProductImage.product_id == product.id,
+            ProductImage.type == "main",
+        ).update({"type": "gallery"})
+        db.flush()
+
     # Create image records in database
     created_images = []
     for i, img_info in enumerate(saved_images_info):
@@ -216,6 +224,8 @@ async def delete_product_image(
     if not image:
         raise HTTPException(status_code=404, detail="Image not found")
 
+    was_main = image.type == "main"
+
     # Delete file
     delete_file(image.url)  # type: ignore
 
@@ -223,9 +233,66 @@ async def delete_product_image(
     db.delete(image)
     db.commit()
 
+    # Keep invariant: when main is deleted, promote the first remaining image.
+    if was_main:
+        next_img = (
+            db.query(ProductImage)
+            .filter(ProductImage.product_id == product_id)
+            .order_by(ProductImage.sort_order.asc())
+            .first()
+        )
+        if next_img:
+            next_img.type = "main"
+            db.commit()
+
     return ApiResponse(
         data=None,
         message="Image deleted successfully"
+    )
+
+
+@router.put("/{product_id}/images/{image_id}/set-main", response_model=ApiResponse)
+async def set_product_main_image(
+    product_id: str,
+    image_id: str,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Set one image as the main image for a product (admin only)."""
+    image = db.query(ProductImage).filter(
+        ProductImage.id == image_id,
+        ProductImage.product_id == product_id,
+    ).first()
+
+    if not image:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    # Demote existing main.
+    db.query(ProductImage).filter(
+        ProductImage.product_id == product_id,
+        ProductImage.type == "main",
+        ProductImage.id != image_id,
+    ).update({"type": "gallery"})
+
+    image.type = "main"
+    db.commit()
+
+    # Return the updated image list for convenience.
+    images = (
+        db.query(ProductImage)
+        .filter(ProductImage.product_id == product_id)
+        .order_by(ProductImage.sort_order.asc())
+        .all()
+    )
+
+    return ApiResponse(
+        data={
+            "images": [
+                {"id": img.id, "url": img.url, "alt": img.alt, "type": img.type}
+                for img in images
+            ]
+        },
+        message="Main image updated successfully",
     )
 
 @router.put("/{product_id}/images/reorder", response_model=ApiResponse)
