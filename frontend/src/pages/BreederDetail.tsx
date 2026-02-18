@@ -65,7 +65,7 @@ const BreederDetail: React.FC = () => {
                   <div className="mt-1 text-xs text-neutral-500">{breederQ.data.code}</div>
                 </div>
                 {typeof breederQ.data.offspringUnitPrice === 'number' ? (
-                  <div className="shrink-0 text-lg font-semibold text-[#D9A516]">¥ {breederQ.data.offspringUnitPrice}</div>
+                  <div className="shrink-0 text-lg font-semibold text-[#D9A516]">子代 ¥ {breederQ.data.offspringUnitPrice}</div>
                 ) : null}
               </div>
 

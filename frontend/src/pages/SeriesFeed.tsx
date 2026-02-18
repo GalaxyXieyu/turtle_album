@@ -136,7 +136,7 @@ const SeriesFeed: React.FC = () => {
                       <div className="mt-0.5 text-xs text-neutral-500">{b.code}</div>
                     </div>
                     {typeof b.offspringUnitPrice === 'number' ? (
-                      <div className="shrink-0 text-sm font-semibold text-[#D9A516]">¥ {b.offspringUnitPrice}</div>
+                      <div className="shrink-0 text-sm font-semibold text-[#D9A516]">子代 ¥ {b.offspringUnitPrice}</div>
                     ) : null}
                   </div>
 
