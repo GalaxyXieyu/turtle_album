@@ -34,7 +34,7 @@ const BreederDetail: React.FC = () => {
           <Link to="/" className="text-sm text-neutral-600 hover:underline">← 返回</Link>
           <div className="text-right">
             <div className="text-xs uppercase tracking-widest text-neutral-500">turtle album</div>
-            <div className="mt-1 text-sm font-medium text-neutral-800">西瑞 · 果核系选育溯源记录</div>
+            <div className="mt-1 text-sm font-medium text-neutral-800">西瑞 · 果核选育溯源记录</div>
           </div>
         </div>
 
