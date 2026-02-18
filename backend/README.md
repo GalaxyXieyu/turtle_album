@@ -18,7 +18,7 @@ A comprehensive Python FastAPI backend for the Glam Cart Builder application, pr
 
 2. **Create and activate virtual environment:**
    ```bash
-   python -m venv .venv
+   python3 -m venv .venv
    
    # On Windows
    .venv\Scripts\activate
@@ -93,13 +93,13 @@ Run the complete test suite:
 pip install pytest pytest-asyncio httpx
 
 # Run all tests
-python -m pytest tests/ -v
+python3 -m pytest tests/ -v
 
 # Run specific test file
-python -m pytest tests/test_auth.py -v
+python3 -m pytest tests/test_auth.py -v
 
 # Run with coverage
-python -m pytest tests/ --cov=. --cov-report=html
+python3 -m pytest tests/ --cov=. --cov-report=html
 ```
 
 ### Manual Testing
