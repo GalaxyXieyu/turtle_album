@@ -51,6 +51,12 @@ def seed_turtle_album(db_session):
         "https://api3.superbed.cn/static/images/2026/0218/cb/69958213556e27f1c93a2ccb.jpg",
         "https://api3.superbed.cn/static/images/2026/0218/cd/6995821c556e27f1c93a2ccd.jpg",
         "https://api3.superbed.cn/static/images/2026/0218/cf/6995822a556e27f1c93a2ccf.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/02/69959283556e27f1c93a2e02.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/03/6995928d556e27f1c93a2e03.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/04/69959298556e27f1c93a2e04.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/05/699592a1556e27f1c93a2e05.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/06/699592ab556e27f1c93a2e06.jpg",
+        "https://api3.superbed.cn/static/images/2026/0218/07/699592b4556e27f1c93a2e07.jpg",
     ]
     demo_idx = 0
 
@@ -97,33 +103,21 @@ def seed_turtle_album(db_session):
         )
         return p
 
-    f1 = breeder(
-        series=s1,
-        name="CB Female #1",
-        code="CBF-001",
-        sex="female",
-        price=1999.0,
-    )
-    m1 = breeder(
-        series=s1,
-        name="CB Male #1",
-        code="CBM-001",
-        sex="male",
-    )
-    f2 = breeder(
-        series=s1,
-        name="CB Female #2",
-        code="CBF-002",
-        sex="female",
-        price=2499.0,
-        sire_code="CBM-001",
-    )
-    m2 = breeder(
-        series=s2,
-        name="HC Male #1",
-        code="HCM-001",
-        sex="male",
-    )
+    # Create enough demo data to feel like a real XHS feed (more than just 4 cards).
+    f1 = breeder(series=s1, name="CB Female #1", code="CBF-001", sex="female", price=1999.0)
+    m1 = breeder(series=s1, name="CB Male #1", code="CBM-001", sex="male")
+    f2 = breeder(series=s1, name="CB Female #2", code="CBF-002", sex="female", price=2499.0, sire_code="CBM-001")
+    m2 = breeder(series=s2, name="HC Male #1", code="HCM-001", sex="male")
+
+    # Extra females
+    f3 = breeder(series=s1, name="CB Female #3", code="CBF-003", sex="female", price=1799.0)
+    f4 = breeder(series=s2, name="HC Female #1", code="HCF-001", sex="female", price=2699.0)
+    f5 = breeder(series=s2, name="HC Female #2", code="HCF-002", sex="female", price=2399.0)
+
+    # Extra males
+    m3 = breeder(series=s1, name="CB Male #2", code="CBM-002", sex="male")
+    m4 = breeder(series=s2, name="HC Male #2", code="HCM-002", sex="male")
+    m5 = breeder(series=s2, name="HC Male #3", code="HCM-003", sex="male")
 
     # Records
     db_session.add(
@@ -131,7 +125,7 @@ def seed_turtle_album(db_session):
             female_id=f1.id,
             male_id=m1.id,
             mated_at=_utc_now() - timedelta(days=14),
-            notes="Demo mating record",
+            notes="第一轮配对",
         )
     )
     db_session.add(
@@ -139,7 +133,23 @@ def seed_turtle_album(db_session):
             female_id=f1.id,
             laid_at=_utc_now() - timedelta(days=3),
             count=6,
-            notes="Demo egg record",
+            notes="第一窝",
+        )
+    )
+    db_session.add(
+        MatingRecord(
+            female_id=f2.id,
+            male_id=m3.id,
+            mated_at=_utc_now() - timedelta(days=40),
+            notes="补配",
+        )
+    )
+    db_session.add(
+        EggRecord(
+            female_id=f4.id,
+            laid_at=_utc_now() - timedelta(days=10),
+            count=4,
+            notes="小窝",
         )
     )
 

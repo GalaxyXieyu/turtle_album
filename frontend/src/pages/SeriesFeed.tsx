@@ -14,6 +14,8 @@ const sexLabel = (sex?: Sex | null) => {
 const SeriesFeed: React.FC = () => {
   const [seriesId, setSeriesId] = React.useState<string | 'all'>('all');
   const [sex, setSex] = React.useState<Sex | 'all'>('all');
+  const femaleRef = React.useRef<HTMLDivElement | null>(null);
+  const maleRef = React.useRef<HTMLDivElement | null>(null);
 
   const seriesQ = useQuery({
     queryKey: ['turtle-album', 'series'],
@@ -110,24 +112,31 @@ const SeriesFeed: React.FC = () => {
           </div>
         </div>
 
-        <div className="columns-2 gap-3 [column-fill:_balance] sm:columns-2">
-          {(breedersQ.data || []).map((b) => {
+        {(() => {
+          const allBreeders = breedersQ.data || [];
+          const females = allBreeders.filter((b) => b.sex === 'female');
+          const males = allBreeders.filter((b) => b.sex === 'male');
+
+          const Card = ({ b }: { b: (typeof allBreeders)[number] }) => {
             const mainImage = (b.images || []).find((i) => i.type === 'main') || (b.images || [])[0];
             const seriesName = (seriesQ.data || []).find((s) => s.id === b.seriesId)?.name;
+
             return (
               <Link
                 key={b.id}
                 to={`/breeder/${b.id}`}
-                className="mb-3 inline-block w-full break-inside-avoid rounded-xl border border-neutral-200 bg-white hover:border-neutral-300"
+                className="mb-3 inline-block w-full break-inside-avoid overflow-hidden rounded-xl border border-neutral-200 bg-white hover:border-neutral-300"
               >
-                {mainImage?.url ? (
-                  <div className="relative overflow-hidden rounded-t-xl bg-neutral-100">
+                <div className="relative bg-neutral-100">
+                  {mainImage?.url ? (
                     <img src={mainImage.url} alt={mainImage.alt || b.code} className="h-auto w-full object-cover" />
-                    <div className="absolute right-2 top-2 rounded-full bg-white/90 px-3 py-1 text-xs text-black">
-                      {sexLabel(b.sex)}
-                    </div>
+                  ) : (
+                    <div className="aspect-[3/4] w-full bg-neutral-100" />
+                  )}
+                  <div className="absolute right-2 top-2 rounded-full bg-white/90 px-3 py-1 text-xs text-black">
+                    {sexLabel(b.sex)}
                   </div>
-                ) : null}
+                </div>
 
                 <div className="p-3">
                   <div className="flex items-start justify-between gap-2">
@@ -145,21 +154,69 @@ const SeriesFeed: React.FC = () => {
                   ) : null}
 
                   <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-neutral-600">
-                    {seriesName ? (
-                      <span className="rounded-full bg-neutral-100 px-2 py-1">{seriesName}</span>
-                    ) : null}
+                    {seriesName ? <span className="rounded-full bg-neutral-100 px-2 py-1">{seriesName}</span> : null}
                     {b.sireCode ? <span className="rounded-full bg-neutral-100 px-2 py-1">父 {b.sireCode}</span> : null}
                     {b.damCode ? <span className="rounded-full bg-neutral-100 px-2 py-1">母 {b.damCode}</span> : null}
                   </div>
                 </div>
               </Link>
             );
-          })}
+          };
 
-          {!breedersQ.isLoading && (breedersQ.data || []).length === 0 ? (
-            <div className="rounded-xl border border-neutral-200 p-6 text-sm text-neutral-600">暂无数据</div>
-          ) : null}
-        </div>
+          const Masonry = ({ list }: { list: typeof allBreeders }) => (
+            <div className="columns-2 gap-3 [column-fill:_balance] sm:columns-2">
+              {list.map((b) => (
+                <Card key={b.id} b={b} />
+              ))}
+            </div>
+          );
+
+          if (!breedersQ.isLoading && allBreeders.length === 0) {
+            return <div className="rounded-xl border border-neutral-200 p-6 text-sm text-neutral-600">暂无数据</div>;
+          }
+
+          // When sex=all, show 2 sections and provide quick jump for mobile.
+          if (sex === 'all') {
+            return (
+              <div className="space-y-6">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => femaleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    className="h-9 flex-1 rounded-full border border-neutral-200 bg-white text-sm text-neutral-800"
+                  >
+                    跳到种母
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => maleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    className="h-9 flex-1 rounded-full border border-neutral-200 bg-white text-sm text-neutral-800"
+                  >
+                    跳到种公
+                  </button>
+                </div>
+
+                <div ref={femaleRef}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="text-sm font-semibold text-neutral-900">种母</div>
+                    <div className="text-xs text-neutral-500">{females.length}</div>
+                  </div>
+                  <Masonry list={females} />
+                </div>
+
+                <div ref={maleRef}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="text-sm font-semibold text-neutral-900">种公</div>
+                    <div className="text-xs text-neutral-500">{males.length}</div>
+                  </div>
+                  <Masonry list={males} />
+                </div>
+              </div>
+            );
+          }
+
+          return <Masonry list={allBreeders} />;
+        })()}
       </div>
     </div>
   );
