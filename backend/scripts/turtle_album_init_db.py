@@ -41,7 +41,7 @@ def seed_turtle_album(db_session):
 
     # Series
     s1 = Series(name="CB-2026", sort_order=1, is_active=True)
-    s2 = Series(name="High-Contrast", sort_order=2, is_active=True)
+    s2 = Series(name="高对比", sort_order=2, is_active=True)
     db_session.add_all([s1, s2])
     db_session.flush()  # get ids
 
@@ -78,7 +78,7 @@ def seed_turtle_album(db_session):
         p = Product(
             name=name,
             code=code,
-            description=f"Demo breeder {code}",
+            description=f"示例种龟 {code}",
             series_id=series.id,
             sex=sex,
             offspring_unit_price=price,
@@ -114,20 +114,20 @@ def seed_turtle_album(db_session):
         return p
 
     # Create enough demo data to feel like a real XHS feed (more than just 4 cards).
-    f1 = breeder(series=s1, name="CB Female #1", code="CBF-001", sex="female", price=1999.0)
-    m1 = breeder(series=s1, name="CB Male #1", code="CBM-001", sex="male")
-    f2 = breeder(series=s1, name="CB Female #2", code="CBF-002", sex="female", price=2499.0, sire_code="CBM-001")
-    m2 = breeder(series=s2, name="HC Male #1", code="HCM-001", sex="male")
+    f1 = breeder(series=s1, name="CB 种母 1号", code="CBF-001", sex="female", price=1999.0)
+    m1 = breeder(series=s1, name="CB 种公 1号", code="CBM-001", sex="male")
+    f2 = breeder(series=s1, name="CB 种母 2号", code="CBF-002", sex="female", price=2499.0, sire_code="CBM-001")
+    m2 = breeder(series=s2, name="HC 种公 1号", code="HCM-001", sex="male")
 
     # Extra females
-    f3 = breeder(series=s1, name="CB Female #3", code="CBF-003", sex="female", price=1799.0)
-    f4 = breeder(series=s2, name="HC Female #1", code="HCF-001", sex="female", price=2699.0)
-    f5 = breeder(series=s2, name="HC Female #2", code="HCF-002", sex="female", price=2399.0)
+    f3 = breeder(series=s1, name="CB 种母 3号", code="CBF-003", sex="female", price=1799.0)
+    f4 = breeder(series=s2, name="HC 种母 1号", code="HCF-001", sex="female", price=2699.0)
+    f5 = breeder(series=s2, name="HC 种母 2号", code="HCF-002", sex="female", price=2399.0)
 
     # Extra males
-    m3 = breeder(series=s1, name="CB Male #2", code="CBM-002", sex="male")
-    m4 = breeder(series=s2, name="HC Male #2", code="HCM-002", sex="male")
-    m5 = breeder(series=s2, name="HC Male #3", code="HCM-003", sex="male")
+    m3 = breeder(series=s1, name="CB 种公 2号", code="CBM-002", sex="male")
+    m4 = breeder(series=s2, name="HC 种公 2号", code="HCM-002", sex="male")
+    m5 = breeder(series=s2, name="HC 种公 3号", code="HCM-003", sex="male")
 
     # Records
     db_session.add(
