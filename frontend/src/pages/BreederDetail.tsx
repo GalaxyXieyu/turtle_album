@@ -1,0 +1,131 @@
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Link, useParams } from 'react-router-dom';
+
+import { turtleAlbumService } from '@/services/turtleAlbumService';
+
+const fmt = (iso?: string | null) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString();
+};
+
+const BreederDetail: React.FC = () => {
+  const { id } = useParams();
+  const breederId = id || '';
+
+  const breederQ = useQuery({
+    queryKey: ['turtle-album', 'breeder', breederId],
+    queryFn: () => turtleAlbumService.getBreeder(breederId),
+    enabled: !!breederId,
+  });
+
+  const recordsQ = useQuery({
+    queryKey: ['turtle-album', 'breeder-records', breederId],
+    queryFn: () => turtleAlbumService.getBreederRecords(breederId),
+    enabled: !!breederId,
+  });
+
+  return (
+    <div className="min-h-screen bg-white text-black">
+      <div className="mx-auto max-w-3xl px-4 py-6">
+        <div className="mb-6 flex items-center justify-between">
+          <Link to="/" className="text-sm text-neutral-600 hover:underline">← 返回</Link>
+          <div className="text-xs uppercase tracking-widest text-neutral-500">breeder detail</div>
+        </div>
+
+        {breederQ.isLoading ? <div className="text-sm text-neutral-600">loading...</div> : null}
+        {breederQ.isError ? (
+          <div className="text-sm text-red-600">{(breederQ.error as Error).message}</div>
+        ) : null}
+
+        {breederQ.data ? (
+          <div className="rounded-xl border border-neutral-200 bg-white p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-2xl font-semibold">{breederQ.data.name}</div>
+                <div className="mt-1 text-xs text-neutral-500">{breederQ.data.code}</div>
+              </div>
+              <div className="rounded-full border border-neutral-300 px-3 py-1 text-xs">
+                {breederQ.data.sex === 'female' ? '母' : breederQ.data.sex === 'male' ? '公' : '-'}
+              </div>
+            </div>
+
+            {breederQ.data.description ? (
+              <div className="mt-3 text-sm text-neutral-800 whitespace-pre-wrap">{breederQ.data.description}</div>
+            ) : null}
+
+            <div className="mt-4 flex flex-wrap gap-2 text-xs text-neutral-700">
+              {typeof breederQ.data.offspringUnitPrice === 'number' ? (
+                <span className="rounded-md bg-neutral-100 px-2 py-1">¥ {breederQ.data.offspringUnitPrice}</span>
+              ) : null}
+              {breederQ.data.sireCode ? (
+                <span className="rounded-md bg-neutral-100 px-2 py-1">父: {breederQ.data.sireCode}</span>
+              ) : null}
+              {breederQ.data.damCode ? (
+                <span className="rounded-md bg-neutral-100 px-2 py-1">母: {breederQ.data.damCode}</span>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="mt-6">
+          <div className="mb-2 text-sm font-medium">记录</div>
+          {recordsQ.isLoading ? <div className="text-sm text-neutral-600">loading...</div> : null}
+          {recordsQ.isError ? (
+            <div className="text-sm text-red-600">{(recordsQ.error as Error).message}</div>
+          ) : null}
+
+          {recordsQ.data ? (
+            <div className="grid gap-3">
+              <div className="rounded-xl border border-neutral-200 bg-white p-4">
+                <div className="mb-2 text-sm font-medium">交配</div>
+                {(recordsQ.data.matingRecordsAsFemale || []).length === 0 &&
+                (recordsQ.data.matingRecordsAsMale || []).length === 0 ? (
+                  <div className="text-sm text-neutral-600">暂无交配记录</div>
+                ) : (
+                  <div className="space-y-2">
+                    {(recordsQ.data.matingRecordsAsFemale || []).map((r) => (
+                      <div key={r.id} className="rounded-lg border border-neutral-200 p-3">
+                        <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
+                        <div className="mt-1 text-sm">配对：母 {r.femaleId.slice(0, 6)} / 公 {r.maleId.slice(0, 6)}</div>
+                        {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
+                      </div>
+                    ))}
+                    {(recordsQ.data.matingRecordsAsMale || []).map((r) => (
+                      <div key={r.id} className="rounded-lg border border-neutral-200 p-3">
+                        <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
+                        <div className="mt-1 text-sm">配对：母 {r.femaleId.slice(0, 6)} / 公 {r.maleId.slice(0, 6)}</div>
+                        {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-neutral-200 bg-white p-4">
+                <div className="mb-2 text-sm font-medium">下蛋</div>
+                {(recordsQ.data.eggRecords || []).length === 0 ? (
+                  <div className="text-sm text-neutral-600">暂无下蛋记录</div>
+                ) : (
+                  <div className="space-y-2">
+                    {(recordsQ.data.eggRecords || []).map((r) => (
+                      <div key={r.id} className="rounded-lg border border-neutral-200 p-3">
+                        <div className="text-xs text-neutral-500">{fmt(r.laidAt)}</div>
+                        <div className="mt-1 text-sm">数量：{typeof r.count === 'number' ? r.count : '-'}</div>
+                        {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BreederDetail;
