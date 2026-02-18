@@ -59,7 +59,7 @@ const SeriesFeed: React.FC = () => {
                   onClick={() => setSeriesId('all')}
                   className={`h-8 rounded-full border px-3 text-xs ${
                     seriesId === 'all'
-                      ? 'border-[#F5C542] bg-[#F5C542] text-black'
+                      ? 'border-[#FFD400] bg-[#FFD400] text-black'
                       : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'
                   }`}
                 >
@@ -72,7 +72,7 @@ const SeriesFeed: React.FC = () => {
                     onClick={() => setSeriesId(s.id)}
                     className={`h-8 rounded-full border px-3 text-xs ${
                       seriesId === s.id
-                        ? 'border-[#F5C542] bg-[#F5C542] text-black'
+                        ? 'border-[#FFD400] bg-[#FFD400] text-black'
                         : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'
                     }`}
                   >
@@ -111,7 +111,7 @@ const SeriesFeed: React.FC = () => {
                     }}
                     className={`h-8 rounded-full border px-3 text-xs ${
                       sex === t.key
-                        ? 'border-[#F5C542] bg-[#F5C542] text-black'
+                        ? 'border-[#FFD400] bg-[#FFD400] text-black'
                         : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'
                     }`}
                   >
@@ -139,7 +139,6 @@ const SeriesFeed: React.FC = () => {
 
           const Card = ({ b }: { b: (typeof allBreeders)[number] }) => {
             const mainImage = (b.images || []).find((i) => i.type === 'main') || (b.images || [])[0];
-            const seriesName = (seriesQ.data || []).find((s) => s.id === b.seriesId)?.name;
 
             return (
               <Link
@@ -162,22 +161,16 @@ const SeriesFeed: React.FC = () => {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="truncate text-base font-semibold text-neutral-900 sm:text-sm">{b.name}</div>
-                      <div className="mt-0.5 text-sm text-neutral-500 sm:text-xs">{b.code}</div>
+                      <div className="mt-0.5 text-sm font-semibold text-neutral-900 sm:text-xs">{b.code}</div>
                     </div>
                     {typeof b.offspringUnitPrice === 'number' ? (
-                      <div className="shrink-0 text-base font-semibold text-[#D9A516] sm:text-sm">子代 ¥ {b.offspringUnitPrice}</div>
+                      <div className="shrink-0 text-base font-semibold text-[#FFD400] sm:text-sm">子代 ¥ {b.offspringUnitPrice}</div>
                     ) : null}
                   </div>
 
                   {b.description ? (
-                    <div className="mt-2 line-clamp-2 text-sm text-neutral-700 sm:text-xs">{b.description}</div>
+                    <div className="mt-2 line-clamp-2 text-sm text-neutral-600/80 sm:text-xs">{b.description}</div>
                   ) : null}
-
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral-600 sm:text-[11px]">
-                    {seriesName ? <span className="rounded-full bg-neutral-100 px-2 py-1">{seriesName}</span> : null}
-                    {b.sireCode ? <span className="rounded-full bg-neutral-100 px-2 py-1">父 {b.sireCode}</span> : null}
-                    {b.damCode ? <span className="rounded-full bg-neutral-100 px-2 py-1">母 {b.damCode}</span> : null}
-                  </div>
                 </div>
               </Link>
             );

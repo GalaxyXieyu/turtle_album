@@ -77,7 +77,7 @@ const BreederDetail: React.FC = () => {
                     <div className="mt-1 text-base text-neutral-500 sm:text-sm">{breederQ.data.code}</div>
                   </div>
                   {typeof breederQ.data.offspringUnitPrice === 'number' ? (
-                    <div className="shrink-0 text-xl font-semibold text-[#D9A516] sm:text-lg">子代 ¥ {breederQ.data.offspringUnitPrice}</div>
+                    <div className="shrink-0 text-xl font-semibold text-[#FFD400] sm:text-lg">子代 ¥ {breederQ.data.offspringUnitPrice}</div>
                   ) : null}
                 </div>
 
@@ -127,7 +127,7 @@ const BreederDetail: React.FC = () => {
                     <div className="space-y-3">
                       {(recordsQ.data.matingRecordsAsFemale || []).map((r) => (
                         <div key={r.id} className="relative">
-                          <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#F5C542]" />
+                          <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#FFD400]" />
                           <div className="rounded-xl border border-neutral-200 bg-white p-3">
                             <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
                             <div className="mt-1 text-sm">
@@ -150,7 +150,7 @@ const BreederDetail: React.FC = () => {
 
                       {(recordsQ.data.matingRecordsAsMale || []).map((r) => (
                         <div key={r.id} className="relative">
-                          <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#F5C542]" />
+                          <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#FFD400]" />
                           <div className="rounded-xl border border-neutral-200 bg-white p-3">
                             <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
                             <div className="mt-1 text-sm">
@@ -192,7 +192,7 @@ const BreederDetail: React.FC = () => {
                       <div className="space-y-3">
                         {(recordsQ.data.eggRecords || []).map((r) => (
                           <div key={r.id} className="relative">
-                            <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#F5C542]" />
+                            <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#FFD400]" />
                             <div className="rounded-xl border border-neutral-200 bg-white p-3">
                               <div className="text-xs text-neutral-500">{fmt(r.laidAt)}</div>
                               <div className="mt-1 text-sm">数量：{typeof r.count === 'number' ? r.count : '-'}</div>

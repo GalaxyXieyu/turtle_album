@@ -55,6 +55,7 @@ const WeChatCard: React.FC<{ label: string; wechatId: string; qrUrl: string }> =
 
 const WeChatContactFab: React.FC<WeChatContactFabProps> = ({ wechat1Id, wechat2Id, wechat1QrUrl, wechat2QrUrl }) => {
   const [open, setOpen] = React.useState(false);
+  const [tab, setTab] = React.useState<'1' | '2'>('1');
 
   return (
     <>
@@ -62,23 +63,42 @@ const WeChatContactFab: React.FC<WeChatContactFabProps> = ({ wechat1Id, wechat2I
         type="button"
         aria-label="联系微信"
         onClick={() => setOpen(true)}
-        className="fixed bottom-[calc(env(safe-area-inset-bottom)+16px)] right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-[#F5C542] text-black shadow-[0_8px_24px_rgba(0,0,0,0.18)] hover:brightness-95"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)+16px)] right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFD400] text-black shadow-[0_8px_24px_rgba(0,0,0,0.18)] hover:brightness-95"
       >
         <QrCode className="h-6 w-6" />
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md rounded-2xl">
+        <DialogContent className="max-w-sm rounded-2xl p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-base">联系微信</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3">
-            <div className="text-sm text-neutral-600">长期专注果核繁殖选育</div>
-            <div className="grid gap-3">
-              <WeChatCard label="微信号①（Siri08888，满人加2号）" wechatId={wechat1Id} qrUrl={wechat1QrUrl} />
-              <WeChatCard label="微信号②" wechatId={wechat2Id} qrUrl={wechat2QrUrl} />
+          <div className="mt-2">
+            <div className="mb-3 text-sm text-neutral-600">长期专注果核繁殖选育</div>
+
+            <div className="mb-3 grid grid-cols-2 gap-2 rounded-full bg-neutral-100 p-1">
+              <button
+                type="button"
+                onClick={() => setTab('1')}
+                className={`h-9 rounded-full text-sm ${tab === '1' ? 'bg-white text-black shadow-sm' : 'text-neutral-600'}`}
+              >
+                微信号①
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('2')}
+                className={`h-9 rounded-full text-sm ${tab === '2' ? 'bg-white text-black shadow-sm' : 'text-neutral-600'}`}
+              >
+                微信号②
+              </button>
             </div>
+
+            {tab === '1' ? (
+              <WeChatCard label="微信号①（Siri08888，满人加2号）" wechatId={wechat1Id} qrUrl={wechat1QrUrl} />
+            ) : (
+              <WeChatCard label="微信号②" wechatId={wechat2Id} qrUrl={wechat2QrUrl} />
+            )}
           </div>
         </DialogContent>
       </Dialog>
