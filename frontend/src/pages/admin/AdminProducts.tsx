@@ -8,6 +8,9 @@ import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, useU
 import { useQueryClient } from "@tanstack/react-query";
 import { adminProductService } from "@/services/productService";
 import { useRequireAuth } from "@/hooks/useAuth";
+import { turtleAlbumService } from "@/services/turtleAlbumService";
+import { createImageUrl } from "@/lib/api";
+import type { Series } from "@/types/turtleAlbum";
 import {
   Table,
   TableBody,
@@ -96,8 +99,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { ProductImportDialog } from "@/components/admin/ProductImportDialog";
-import OptimizedImage from "@/components/OptimizedImage";
-import { getOptimizedImageProps } from "@/utils/productImageHelpers";
 
 // Image upload interface
 interface ProductImageUpload {
@@ -155,12 +156,7 @@ const AdminProducts = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
-  const [listFilters, setListFilters] = useState({
-    tubeType: "",
-    boxType: "",
-    processType: "",
-    shape: "",
-  });
+  const [listFilters, setListFilters] = useState<{ sex?: string; series_id?: string }>({});
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductDetailOpen, setIsProductDetailOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -169,6 +165,9 @@ const AdminProducts = () => {
   const [selectedFunctionalDesigns, setSelectedFunctionalDesigns] = useState<FunctionalDesign[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Series state
+  const [seriesList, setSeriesList] = useState<Series[]>([]);
 
   // New state for multiple images
   const [imageUploads, setImageUploads] = useState<ProductImageUpload[]>([]);
@@ -194,12 +193,7 @@ const AdminProducts = () => {
     page: currentPage,
     limit: itemsPerPage,
     search: searchQuery.trim() || undefined,
-    filters: {
-      tubeTypes: listFilters.tubeType ? [listFilters.tubeType] : undefined,
-      boxTypes: listFilters.boxType ? [listFilters.boxType] : undefined,
-      processTypes: listFilters.processType ? [listFilters.processType] : undefined,
-      shapes: listFilters.shape ? [listFilters.shape] : undefined,
-    },
+    filters: listFilters,
   });
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
@@ -210,9 +204,29 @@ const AdminProducts = () => {
   const products = apiProductsData?.products || [];
   const totalProducts = apiProductsData?.total || 0;
   const totalPages = apiProductsData?.totalPages || 1;
+  const getPrimaryImageUrl = (product: Product): string | null => {
+    if (!product.images || product.images.length === 0) return null;
+    const mainImage = product.images.find((img) => img.type === "main") || product.images[0];
+    return mainImage?.url ? createImageUrl(mainImage.url) : null;
+  };
 
   // Local state for filtered products
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+
+  // Fetch series list
+  useEffect(() => {
+    const fetchSeries = async () => {
+      try {
+        const series = await turtleAlbumService.listSeries();
+        setSeriesList(series);
+      } catch (error) {
+        console.error('Failed to fetch series:', error);
+      }
+    };
+    if (isAuthenticated) {
+      fetchSeries();
+    }
+  }, [isAuthenticated]);
 
   // Fetch filter options from API
   const normalizeFilterValues = (values: unknown): string[] => {
@@ -1414,112 +1428,65 @@ const AdminProducts = () => {
         </div>
       </div>
 
-      <div className="mb-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
-        <div className="space-y-1">
-          <Label className="text-sm text-gray-700">管型</Label>
-          <Select
-            value={listFilters.tubeType || "all"}
-            onValueChange={(value) =>
-              setListFilters(prev => ({ ...prev, tubeType: value === "all" ? "" : value }))
-            }
-          >
-            <SelectTrigger className="bg-white border-gray-200">
-              <SelectValue placeholder="全部" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部</SelectItem>
-              {filterOptions.tubeTypes.map((tubeType) => (
-                <SelectItem key={tubeType} value={tubeType}>
-                  {tubeType}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Turtle Filters */}
+      <div className="mb-4 flex flex-col sm:flex-row gap-3">
+        <Select
+          value={listFilters.sex || "all"}
+          onValueChange={(value) => {
+            setListFilters(prev => ({
+              ...prev,
+              sex: value === "all" ? undefined : value
+            }));
+            setCurrentPage(1);
+          }}
+        >
+          <SelectTrigger className="w-full sm:w-[180px] bg-white border-gray-200">
+            <SelectValue placeholder="性别" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部性别</SelectItem>
+            <SelectItem value="male">公</SelectItem>
+            <SelectItem value="female">母</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <div className="space-y-1">
-          <Label className="text-sm text-gray-700">盒型</Label>
-          <Select
-            value={listFilters.boxType || "all"}
-            onValueChange={(value) =>
-              setListFilters(prev => ({ ...prev, boxType: value === "all" ? "" : value }))
-            }
-          >
-            <SelectTrigger className="bg-white border-gray-200">
-              <SelectValue placeholder="全部" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部</SelectItem>
-              {filterOptions.boxTypes.map((boxType) => (
-                <SelectItem key={boxType} value={boxType}>
-                  {boxType}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select
+          value={listFilters.series_id || "all"}
+          onValueChange={(value) => {
+            setListFilters(prev => ({
+              ...prev,
+              series_id: value === "all" ? undefined : value
+            }));
+            setCurrentPage(1);
+          }}
+        >
+          <SelectTrigger className="w-full sm:w-[200px] bg-white border-gray-200">
+            <SelectValue placeholder="种类" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部种类</SelectItem>
+            {seriesList.map((series) => (
+              <SelectItem key={series.id} value={series.id}>
+                {series.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <div className="space-y-1">
-          <Label className="text-sm text-gray-700">工艺类型</Label>
-          <Select
-            value={listFilters.processType || "all"}
-            onValueChange={(value) =>
-              setListFilters(prev => ({ ...prev, processType: value === "all" ? "" : value }))
-            }
-          >
-            <SelectTrigger className="bg-white border-gray-200">
-              <SelectValue placeholder="全部" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部</SelectItem>
-              {filterOptions.processTypes.map((processType) => (
-                <SelectItem key={processType} value={processType}>
-                  {processType}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1">
-          <Label className="text-sm text-gray-700">形状</Label>
-          <Select
-            value={listFilters.shape || "all"}
-            onValueChange={(value) =>
-              setListFilters(prev => ({ ...prev, shape: value === "all" ? "" : value }))
-            }
-          >
-            <SelectTrigger className="bg-white border-gray-200">
-              <SelectValue placeholder="全部" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部</SelectItem>
-              {filterOptions.shapes.map((shape) => (
-                <SelectItem key={shape} value={shape}>
-                  {shape}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-end justify-end">
+        {(listFilters.sex || listFilters.series_id) && (
           <Button
-            type="button"
             variant="outline"
-            className="border-gray-300 text-gray-600 hover:bg-gray-200 hover:text-gray-900 w-full"
-            onClick={() =>
-              setListFilters({
-                tubeType: "",
-                boxType: "",
-                processType: "",
-                shape: "",
-              })
-            }
+            size="sm"
+            onClick={() => {
+              setListFilters({});
+              setCurrentPage(1);
+            }}
+            className="border-gray-200"
           >
+            <X className="h-4 w-4 mr-1" />
             清除筛选
           </Button>
-        </div>
+        )}
       </div>
       </div>
 
@@ -1542,7 +1509,8 @@ const AdminProducts = () => {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead>类型</TableHead>
+                <TableHead>性别</TableHead>
+                <TableHead>种类</TableHead>
                 <TableHead className="text-right">操作</TableHead>
               </TableRow>
             </TableHeader>
@@ -1552,21 +1520,12 @@ const AdminProducts = () => {
                   <TableRow key={product.id}>
                     <TableCell>
                       <div className="h-10 w-10 rounded bg-gray-100 overflow-hidden">
-                        {product.images && product.images.length > 0 ? (
-                          (() => {
-                            const imageProps = getOptimizedImageProps(product, 0, 'card-thumbnail');
-                            return imageProps ? (
-                              <OptimizedImage
-                                {...imageProps}
-                                className="h-full w-full object-cover"
-                                lazy={true}
-                              />
-                            ) : (
-                              <div className="h-full w-full flex items-center justify-center text-gray-300">
-                                <Eye className="h-4 w-4" />
-                              </div>
-                            );
-                          })()
+                        {getPrimaryImageUrl(product) ? (
+                          <img
+                            src={getPrimaryImageUrl(product)!}
+                            alt={product.name}
+                            className="h-full w-full object-cover"
+                          />
                         ) : (
                           <div className="h-full w-full flex items-center justify-center text-gray-300">
                             <Eye className="h-4 w-4" />
@@ -1577,7 +1536,10 @@ const AdminProducts = () => {
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.code}</TableCell>
                     <TableCell>
-                      {product.tubeType || product.boxType || product.processType}
+                      {product.sex === 'male' ? '公' : product.sex === 'female' ? '母' : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {seriesList.find(s => s.id === product.seriesId)?.name || '-'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end">
@@ -1689,21 +1651,12 @@ const AdminProducts = () => {
                 <div className="flex gap-3">
                   {/* Product Image */}
                   <div className="h-20 w-20 rounded bg-gray-100 overflow-hidden flex-shrink-0">
-                    {product.images && product.images.length > 0 ? (
-                      (() => {
-                        const imageProps = getOptimizedImageProps(product, 0, 'card-thumbnail');
-                        return imageProps ? (
-                          <OptimizedImage
-                            {...imageProps}
-                            className="h-full w-full object-cover"
-                            lazy={true}
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-gray-300">
-                            <Eye className="h-6 w-6" />
-                          </div>
-                        );
-                      })()
+                    {getPrimaryImageUrl(product) ? (
+                      <img
+                        src={getPrimaryImageUrl(product)!}
+                        alt={product.name}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center text-gray-300">
                         <Eye className="h-6 w-6" />
@@ -1715,9 +1668,11 @@ const AdminProducts = () => {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-gray-900 truncate mb-1">{product.name}</h3>
                     <p className="text-sm text-gray-600 mb-1">货号: {product.code}</p>
-                    <p className="text-sm text-gray-600">
-                      {product.tubeType || product.boxType || product.processType}
-                    </p>
+                    <div className="flex gap-2 text-sm text-gray-600">
+                      <span>{product.sex === 'male' ? '公' : product.sex === 'female' ? '母' : '-'}</span>
+                      <span>•</span>
+                      <span>{seriesList.find(s => s.id === product.seriesId)?.name || '-'}</span>
+                    </div>
                   </div>
 
                   {/* Quick Actions */}

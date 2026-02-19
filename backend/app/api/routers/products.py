@@ -122,6 +122,8 @@ async def get_products(
     process_types: Optional[str] = Query(None),
     shapes: Optional[str] = Query(None),
     materials: Optional[str] = Query(None),
+    sex: Optional[str] = Query(None),
+    series_id: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
     """Get products with filtering, sorting, and pagination."""
@@ -183,6 +185,13 @@ async def get_products(
             material_conditions.append(Product.material.like(f"%{material}%"))
         if material_conditions:
             query = query.filter(or_(*material_conditions))
+
+    # Apply turtle-specific filters
+    if sex:
+        query = query.filter(Product.sex == sex)
+
+    if series_id:
+        query = query.filter(Product.series_id == series_id)
 
     # Apply sorting
     if sort == SortOption.NEWEST:

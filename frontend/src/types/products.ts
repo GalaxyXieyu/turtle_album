@@ -74,6 +74,7 @@ export interface Product {
 export interface FilterOptions {
   tubeTypes?: TubeType[];
   boxTypes?: BoxType[];
+  processTypes?: ProcessType[];
   functionalDesigns?: FunctionalDesign[];
   shapes?: Shape[];
   materials?: Material[];
@@ -85,6 +86,7 @@ export interface FilterOptions {
 export interface FilterOptionsResponse {
   tubeTypes: TubeType[];
   boxTypes: BoxType[];
+  processTypes: ProcessType[];
   functionalDesigns: FunctionalDesign[];
   shapes: Shape[];
   materials: Material[];
