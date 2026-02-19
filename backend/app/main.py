@@ -61,6 +61,10 @@ app.add_middleware(
         "http://127.0.0.1:5182",
         "http://127.0.0.1:8080",
         "http://127.0.0.1:8081",
+        # Sealos production domain(s)
+        "https://qmngzrlhklmt.sealoshzh.site",
+        "http://qmngzrlhklmt.sealoshzh.site",
+        # Legacy domain kept for compatibility (can be removed once confirmed unused)
         "https://frbzhxxscekk.sealoshzh.site",
         "http://frbzhxxscekk.sealoshzh.site"
     ],
