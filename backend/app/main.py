@@ -86,13 +86,29 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # This project uses SQLAlchemy `create_all()` (no Alembic migrations).
 @app.on_event("startup")
 async def startup_event():
+    # 1) Ensure tables exist for a fresh DB.
     create_tables()
-    validate_schema_or_raise()
+
+    # 2) Run idempotent sqlite migrations for existing DB files.
     sqlite_file = get_sqlite_file_path()
+    if sqlite_file and sqlite_file.exists():
+        try:
+            from app.db.migrations import migrate_series_code_and_rel
+
+            migrate_series_code_and_rel(sqlite_file)
+            logger.info("SQLite migrations applied (idempotent)")
+        except Exception as e:
+            logger.error(f"SQLite migrations failed: {e}")
+            raise
+
+    # 3) Fail fast if schema still mismatches the current code.
+    validate_schema_or_raise()
+
     if sqlite_file:
         logger.info(f"Using SQLite DB: {sqlite_file}")
     else:
         logger.info(f"Using DB URL: {DATABASE_URL}")
+
     db = next(get_db())
     try:
         admin_user = create_admin_user(db)
