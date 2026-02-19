@@ -10,7 +10,7 @@ Use Sealos platform-native release and deploy flow with minimum manual YAML work
 2. Create app `turtle_album` (or reuse existing app).
 3. Set image source to Docker Hub repo `galaxyxieyu/turtle_album`.
 4. Set image tag policy to `latest` for simple continuous deployment.
-5. Configure container port `8000` and service port `80`.
+5. Configure container port `80` and service port `80`.
 
 ## Domain setup
 

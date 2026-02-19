@@ -20,7 +20,7 @@ spec:
           image: galaxyxieyu/glam-cart:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8000
+            - containerPort: 80
           resources:
             requests:
               cpu: 200m
@@ -39,7 +39,7 @@ metadata:
 spec:
   selector:
     app: turtle-album
-  ports:
+      ports:
     - name: http
       port: 80
-      targetPort: 8000
+      targetPort: 80

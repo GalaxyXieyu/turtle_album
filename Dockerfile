@@ -43,7 +43,7 @@ RUN mkdir -p /data/images
 
 # 设置环境变量（生产环境通过 Sealos 覆盖）
 ENV HOST=0.0.0.0
-ENV PORT=8000
+ENV PORT=80
 ENV DEBUG=False
 ENV DATABASE_URL=sqlite:////data/app.db
 ENV UPLOAD_DIR=/data/images
@@ -52,7 +52,7 @@ ENV ADMIN_USERNAME=admin
 ENV ADMIN_PASSWORD=admin123
 
 # 暴露端口
-EXPOSE 8000
+EXPOSE 80
 
 # 启动命令
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
