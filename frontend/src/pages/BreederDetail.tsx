@@ -39,7 +39,7 @@ const BreederDetail: React.FC = () => {
         wechat1QrUrl="https://api3.superbed.cn/static/images/2026/0218/d6/6995ae51556e27f1c93a2fd6.jpg"
         wechat2QrUrl="https://api3.superbed.cn/static/images/2026/0218/04/6995afba556e27f1c93a3004.jpg"
       />
-      <div className="mx-auto w-full max-w-[1440px] px-3 pb-8 pt-[calc(env(safe-area-inset-top)+24px)] sm:px-4 lg:px-6">
+      <div className="w-full px-3 pb-8 pt-[calc(env(safe-area-inset-top)+24px)] sm:px-4 lg:px-8 xl:px-10">
         <div className="mb-6 flex items-center justify-between">
           <Link to="/" className="text-sm text-neutral-600 hover:underline">← 返回</Link>
           <div className="text-right">

@@ -74,7 +74,7 @@ const SeriesFeed: React.FC = () => {
         wechat1QrUrl="https://api3.superbed.cn/static/images/2026/0218/d6/6995ae51556e27f1c93a2fd6.jpg"
         wechat2QrUrl="https://api3.superbed.cn/static/images/2026/0218/04/6995afba556e27f1c93a3004.jpg"
       />
-      <div className="mx-auto w-full max-w-[1440px] px-3 pb-8 pt-[calc(env(safe-area-inset-top)+12px)] sm:px-4 lg:px-6">
+      <div className="w-full px-3 pb-8 pt-[calc(env(safe-area-inset-top)+12px)] sm:px-4 lg:px-8 xl:px-10">
         <header
           className={`mb-4 overflow-hidden rounded-3xl bg-neutral-900 transition-[max-height,opacity,transform] duration-300 ease-out ${
             isHeroCollapsed ? 'max-h-20 opacity-0 -translate-y-2' : 'max-h-[220px] opacity-100 translate-y-0'
