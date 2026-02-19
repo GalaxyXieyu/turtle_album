@@ -1,11 +1,12 @@
 import apiClient, { ApiResponse, handleApiError } from '@/lib/api';
-import type { Breeder, BreederRecords, Series, Sex } from '@/types/turtleAlbum';
+import type { Breeder, BreederRecords, Series, Sex, FamilyTree } from '@/types/turtleAlbum';
 
 const ENDPOINTS = {
   SERIES: '/api/series',
   BREEDERS: '/api/breeders',
   BREEDER_DETAIL: (id: string) => `/api/breeders/${id}`,
   BREEDER_RECORDS: (id: string) => `/api/breeders/${id}/records`,
+  BREEDER_FAMILY_TREE: (id: string) => `/api/breeders/${id}/family-tree`,
 };
 
 export class ApiRequestError extends Error {
@@ -60,6 +61,16 @@ export const turtleAlbumService = {
   async getBreederRecords(id: string): Promise<BreederRecords> {
     try {
       const res = await apiClient.get<ApiResponse<BreederRecords>>(ENDPOINTS.BREEDER_RECORDS(id));
+      return res.data.data;
+    } catch (e) {
+      const err = handleApiError(e);
+      throw new ApiRequestError(err.message, { status: err.status, code: err.code });
+    }
+  },
+
+  async getBreederFamilyTree(id: string): Promise<FamilyTree> {
+    try {
+      const res = await apiClient.get<ApiResponse<FamilyTree>>(ENDPOINTS.BREEDER_FAMILY_TREE(id));
       return res.data.data;
     } catch (e) {
       const err = handleApiError(e);

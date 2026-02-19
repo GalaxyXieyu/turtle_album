@@ -8,7 +8,7 @@ on:
 env:
   IMAGE_NAME: ${{ vars.IMAGE_NAME || 'turtle_album' }}
   K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE || 'ns-lmgpb9nc' }}
-  K8S_WORKLOAD_NAME: ${{ vars.K8S_WORKLOAD_NAME || 'turtle-album' }}
+  K8S_WORKLOAD_NAME: ${{ vars.K8S_WORKLOAD_NAME || 'turtles-album' }}
   K8S_WORKLOAD_KIND: ${{ vars.K8S_WORKLOAD_KIND || 'auto' }}
   K8S_CONTAINER_NAME: ${{ vars.K8S_CONTAINER_NAME || '' }}
 

@@ -43,6 +43,9 @@ backend/backup/
 backend/static/images/
 frontend/public/images/
 kubeconfig.yaml
+kubeconfig-*.yaml
+turtle_album.yaml
+turtles_album.yaml
 O.zip
 O/
 产品 O.xlsx

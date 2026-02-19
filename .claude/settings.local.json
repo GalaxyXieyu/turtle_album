@@ -12,7 +12,12 @@
       "Bash(mkdir:*)",
       "Bash(pip install:*)",
       "Bash(/Library/Developer/CommandLineTools/usr/bin/python3 -m pip install loguru --quiet)",
-      "Bash(pip:*)"
+      "Bash(pip:*)",
+      "Bash(sqlite3:*)",
+      "Bash(./start_backend.sh:*)",
+      "Bash(ls:*)",
+      "Bash(chmod:*)",
+      "Bash(PYTHONPATH=. ./venv/bin/python:*)"
     ],
     "deny": []
   }

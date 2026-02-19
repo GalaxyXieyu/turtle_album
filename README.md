@@ -20,7 +20,29 @@ turtle_album/
 
 ## 快速开始
 
-### Backend
+### 方式一：使用开发脚本（推荐）
+
+```bash
+# 首次使用需要安装依赖
+cd backend && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt && cd ..
+cd frontend && npm install && cd ..
+
+# 启动开发环境（前端 + 后端）
+./dev.sh start
+
+# 查看服务状态
+./dev.sh status
+
+# 停止服务
+./dev.sh stop
+
+# 重启服务
+./dev.sh restart
+```
+
+### 方式二：手动启动
+
+**Backend:**
 
 ```bash
 cd backend
@@ -32,7 +54,7 @@ python run.py
 
 默认使用：`backend/data/app.db`
 
-### Frontend
+**Frontend:**
 
 ```bash
 cd frontend
@@ -40,7 +62,7 @@ npm install
 npm run dev
 ```
 
-默认地址：`http://localhost:5173`
+默认地址：`http://localhost:8080`
 
 ## 关键约定
 

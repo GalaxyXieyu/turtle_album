@@ -1,0 +1,275 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { createImageUrl } from '@/lib/api';
+import type { FamilyTree, FamilyTreeNode } from '@/types/turtleAlbum';
+
+interface FamilyTreeProps {
+  familyTree: FamilyTree;
+}
+
+interface TreeNodeProps {
+  node: FamilyTreeNode | null | undefined;
+  showSiblings?: boolean;
+  onToggleSiblings?: () => void;
+}
+
+const TreeNode: React.FC<TreeNodeProps> = ({ node, showSiblings, onToggleSiblings }) => {
+  if (!node) {
+    return (
+      <div className="flex h-24 w-20 items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 text-xs text-neutral-400">
+        未知
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <Link
+        to={`/breeder/${node.id}`}
+        className="group block h-24 w-20 overflow-hidden rounded-lg border-2 border-neutral-200 bg-white shadow-sm transition hover:border-amber-400 hover:shadow-md"
+      >
+        {node.thumbnailUrl ? (
+          <img
+            src={createImageUrl(node.thumbnailUrl)}
+            alt={node.code}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200">
+            <svg className="h-8 w-8 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        )}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-1 py-1">
+          <div className="truncate text-[10px] font-medium text-white">{node.code}</div>
+        </div>
+      </Link>
+
+      {node.siblings && node.siblings.length > 0 && (
+        <button
+          type="button"
+          onClick={onToggleSiblings}
+          className="absolute -bottom-7 left-1/2 z-10 -translate-x-1/2 rounded-full bg-neutral-200 px-2.5 py-0.5 text-[10px] font-medium text-neutral-700 shadow-sm transition hover:bg-neutral-300"
+        >
+          {showSiblings ? '隐藏' : `+${node.siblings.length}`}
+        </button>
+      )}
+    </div>
+  );
+};
+
+const FamilyTreeComponent: React.FC<FamilyTreeProps> = ({ familyTree }) => {
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const [showFatherSiblings, setShowFatherSiblings] = React.useState(false);
+  const [showMotherSiblings, setShowMotherSiblings] = React.useState(false);
+  const [showCurrentSiblings, setShowCurrentSiblings] = React.useState(false);
+  const [showGreatGrandparents, setShowGreatGrandparents] = React.useState(false);
+  const [showGrandparents, setShowGrandparents] = React.useState(true);
+  const [showParents, setShowParents] = React.useState(true);
+
+  // Auto-scroll to rightmost (current animal) on mount
+  React.useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+    }
+  }, []);
+
+  const { current, ancestors, offspring, siblings } = familyTree;
+
+  // Check if there are any great-grandparents
+  const hasGreatGrandparents = !!(
+    ancestors.paternalPaternalGreatGrandfather ||
+    ancestors.paternalPaternalGreatGrandmother ||
+    ancestors.paternalMaternalGreatGrandfather ||
+    ancestors.paternalMaternalGreatGrandmother ||
+    ancestors.maternalPaternalGreatGrandfather ||
+    ancestors.maternalPaternalGreatGrandmother ||
+    ancestors.maternalMaternalGreatGrandfather ||
+    ancestors.maternalMaternalGreatGrandmother
+  );
+
+  // Check if there are any grandparents
+  const hasGrandparents = !!(
+    ancestors.paternalGrandfather ||
+    ancestors.paternalGrandmother ||
+    ancestors.maternalGrandfather ||
+    ancestors.maternalGrandmother
+  );
+
+  // Check if there are any parents
+  const hasParents = !!(ancestors.father || ancestors.mother);
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl">
+      <div
+        ref={scrollContainerRef}
+        className="overflow-x-auto overflow-y-hidden pb-4"
+        style={{ scrollBehavior: 'smooth' }}
+      >
+        <div className="inline-flex gap-8 px-4 py-6">
+          {/* Great-grandparents column - collapsible */}
+          {showGreatGrandparents && (
+            <div className="flex flex-col gap-4">
+              <div className="text-center text-xs font-medium text-neutral-500">曾祖辈</div>
+              <div className="flex flex-col gap-3">
+                <TreeNode node={ancestors.paternalPaternalGreatGrandfather} />
+                <TreeNode node={ancestors.paternalPaternalGreatGrandmother} />
+                <TreeNode node={ancestors.paternalMaternalGreatGrandfather} />
+                <TreeNode node={ancestors.paternalMaternalGreatGrandmother} />
+                <TreeNode node={ancestors.maternalPaternalGreatGrandfather} />
+                <TreeNode node={ancestors.maternalPaternalGreatGrandmother} />
+                <TreeNode node={ancestors.maternalMaternalGreatGrandfather} />
+                <TreeNode node={ancestors.maternalMaternalGreatGrandmother} />
+              </div>
+            </div>
+          )}
+
+          {/* Grandparents column */}
+          {hasGrandparents && showGrandparents && (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowGrandparents(false)}
+                  className="rounded-full bg-neutral-200 p-1 text-neutral-600 transition hover:bg-neutral-300"
+                  title="隐藏祖辈"
+                >
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                {hasGreatGrandparents && (
+                  <button
+                    type="button"
+                    onClick={() => setShowGreatGrandparents(!showGreatGrandparents)}
+                    className="rounded-full bg-neutral-200 p-1 text-neutral-600 transition hover:bg-neutral-300"
+                    title={showGreatGrandparents ? '隐藏曾祖辈' : '显示曾祖辈'}
+                  >
+                    <svg
+                      className={`h-3 w-3 transition-transform ${showGreatGrandparents ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                )}
+                <div className="text-center text-xs font-medium text-neutral-500">祖辈</div>
+              </div>
+              <div className="flex flex-col gap-3">
+                <TreeNode node={ancestors.paternalGrandfather} />
+                <TreeNode node={ancestors.paternalGrandmother} />
+                <TreeNode node={ancestors.maternalGrandfather} />
+                <TreeNode node={ancestors.maternalGrandmother} />
+              </div>
+            </div>
+          )}
+
+          {/* Parents column */}
+          {hasParents && showParents && (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowParents(false)}
+                  className="rounded-full bg-neutral-200 p-1 text-neutral-600 transition hover:bg-neutral-300"
+                  title="隐藏父母辈"
+                >
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <div className="text-center text-xs font-medium text-neutral-500">父母辈</div>
+              </div>
+            <div className="flex flex-col gap-10">
+              <div>
+                <TreeNode
+                  node={ancestors.father}
+                  showSiblings={showFatherSiblings}
+                  onToggleSiblings={() => setShowFatherSiblings(!showFatherSiblings)}
+                />
+                {showFatherSiblings && ancestors.father?.siblings && (
+                  <div className="mt-2 flex flex-col gap-2">
+                    {ancestors.father.siblings.map((sibling) => (
+                      <TreeNode key={sibling.id} node={sibling} />
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div>
+                <TreeNode
+                  node={ancestors.mother}
+                  showSiblings={showMotherSiblings}
+                  onToggleSiblings={() => setShowMotherSiblings(!showMotherSiblings)}
+                />
+                {showMotherSiblings && ancestors.mother?.siblings && (
+                  <div className="mt-2 flex flex-col gap-2">
+                    {ancestors.mother.siblings.map((sibling) => (
+                      <TreeNode key={sibling.id} node={sibling} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          )}
+
+          {/* Current animal column */}
+          <div className="flex flex-col gap-4">
+            <div className="text-center text-xs font-medium text-amber-600">当前</div>
+            <div className="flex flex-col gap-3">
+              <div className="relative">
+                <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-amber-400 to-orange-400 opacity-75 blur"></div>
+                <div className="relative">
+                  <TreeNode node={current} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Offspring column */}
+          {offspring.length > 0 && (
+            <div className="flex flex-col gap-4">
+              <div className="text-center text-xs font-medium text-neutral-500">子代</div>
+              <div className="flex flex-col gap-3">
+                {offspring.map((child) => (
+                  <TreeNode key={child.id} node={child} />
+                ))}
+                {showCurrentSiblings && siblings.length > 0 && (
+                  <div className="mt-4 border-t border-neutral-200 pt-3">
+                    <div className="mb-2 text-center text-[10px] text-neutral-400">同辈</div>
+                    {siblings.map((sibling) => (
+                      <div key={sibling.id} className="mb-2">
+                        <TreeNode node={sibling} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {siblings.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentSiblings(!showCurrentSiblings)}
+                  className="mt-2 rounded-full bg-neutral-200 px-2.5 py-0.5 text-[10px] font-medium text-neutral-700 shadow-sm transition hover:bg-neutral-300"
+                >
+                  {showCurrentSiblings ? '隐藏' : `+${siblings.length}`}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Scroll hint */}
+      <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+        <div className="rounded-t-lg bg-black/60 px-4 py-2 text-xs text-white backdrop-blur-sm">
+          ← 左滑查看祖辈 | 右滑查看后代 →
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FamilyTreeComponent;

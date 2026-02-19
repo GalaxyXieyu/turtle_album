@@ -58,3 +58,59 @@ export interface BreederRecords {
   matingRecordsAsMale: MatingRecord[];
   eggRecords: EggRecord[];
 }
+
+export interface FamilyTreeNode {
+  id: string;
+  code: string;
+  name: string;
+  sex: Sex;
+  thumbnailUrl?: string | null;
+  generation: number;
+  relationship: string;
+  sireCode?: string | null;
+  damCode?: string | null;
+  siblings?: FamilyTreeNode[];
+}
+
+export interface FamilyTreeMatingRecord {
+  id: string;
+  maleId?: string;
+  maleCode?: string;
+  maleName?: string;
+  femaleId?: string;
+  femaleCode?: string;
+  femaleName?: string;
+  matedAt: string | null;
+  notes?: string | null;
+}
+
+export interface FamilyTreeEggRecord {
+  id: string;
+  laidAt: string | null;
+  count?: number | null;
+  notes?: string | null;
+}
+
+export interface FamilyTree {
+  current: FamilyTreeNode;
+  ancestors: {
+    father?: FamilyTreeNode;
+    mother?: FamilyTreeNode;
+    paternalGrandfather?: FamilyTreeNode;
+    paternalGrandmother?: FamilyTreeNode;
+    maternalGrandfather?: FamilyTreeNode;
+    maternalGrandmother?: FamilyTreeNode;
+    paternalPaternalGreatGrandfather?: FamilyTreeNode;
+    paternalPaternalGreatGrandmother?: FamilyTreeNode;
+    paternalMaternalGreatGrandfather?: FamilyTreeNode;
+    paternalMaternalGreatGrandmother?: FamilyTreeNode;
+    maternalPaternalGreatGrandfather?: FamilyTreeNode;
+    maternalPaternalGreatGrandmother?: FamilyTreeNode;
+    maternalMaternalGreatGrandfather?: FamilyTreeNode;
+    maternalMaternalGreatGrandmother?: FamilyTreeNode;
+  };
+  offspring: FamilyTreeNode[];
+  siblings: FamilyTreeNode[];
+  matingRecords: FamilyTreeMatingRecord[];
+  eggRecords: FamilyTreeEggRecord[];
+}

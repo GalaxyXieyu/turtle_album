@@ -3,23 +3,242 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 
 import WeChatContactFab from '@/components/turtle-album/WeChatContactFab';
+import FamilyTreeComponent from '@/components/turtle-album/FamilyTree';
 
 import { createImageUrl } from '@/lib/api';
 
 import { ApiRequestError, turtleAlbumService } from '@/services/turtleAlbumService';
-
-const fmt = (iso?: string | null) => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString();
-};
 
 const isBreederNotFoundError = (error: unknown) => {
   if (error instanceof ApiRequestError && error.status === 404) return true;
   if (error instanceof Error && /not\s*found/i.test(error.message)) return true;
   return false;
 };
+
+const sexLabel = (sex?: string | null) => {
+  if (sex === 'female') return '种母';
+  if (sex === 'male') return '种公';
+  return '-';
+};
+
+interface BreederCarouselProps {
+  mainImage?: { url: string; alt?: string | null } | null;
+  breederCode: string;
+  breederSex?: string | null;
+  activeSeries?: { name: string } | null;
+  seriesIntroItems: string[];
+}
+
+const BreederCarousel: React.FC<BreederCarouselProps> = ({ mainImage, breederCode, breederSex, activeSeries, seriesIntroItems }) => {
+  const [currentSlide, setCurrentSlide] = React.useState(1); // Start at slide 1 (image)
+  const [touchStart, setTouchStart] = React.useState(0);
+  const [touchEnd, setTouchEnd] = React.useState(0);
+  const [showSwipeHint, setShowSwipeHint] = React.useState(true);
+
+  const hasSeriesIntro = seriesIntroItems.length > 0;
+
+  // Hide swipe hint after 3 seconds
+  React.useEffect(() => {
+    if (hasSeriesIntro) {
+      const timer = setTimeout(() => {
+        setShowSwipeHint(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasSeriesIntro]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+    setShowSwipeHint(false); // Hide hint when user starts touching
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    // Right swipe: show series intro (slide 0)
+    if (isRightSwipe && currentSlide === 1 && hasSeriesIntro) {
+      setCurrentSlide(0);
+    }
+    // Left swipe: back to image (slide 1)
+    if (isLeftSwipe && currentSlide === 0) {
+      setCurrentSlide(1);
+    }
+
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
+  return (
+    <div className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-[0_14px_38px_rgba(0,0,0,0.14)]">
+      <div
+        className="relative aspect-[4/5] bg-neutral-100"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <Link
+          to="/"
+          className="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-2 text-sm text-neutral-800 shadow-lg backdrop-blur-sm transition hover:bg-white hover:shadow-xl"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>返回</span>
+        </Link>
+
+        {/* Slide indicators */}
+        {hasSeriesIntro ? (
+          <div className="absolute right-3 top-3 z-10 flex gap-1.5 rounded-full bg-black/40 px-2 py-1.5 backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={() => setCurrentSlide(0)}
+              className={`h-1.5 rounded-full transition-all ${
+                currentSlide === 0 ? 'w-6 bg-white' : 'w-1.5 bg-white/50'
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setCurrentSlide(1)}
+              className={`h-1.5 rounded-full transition-all ${
+                currentSlide === 1 ? 'w-6 bg-white' : 'w-1.5 bg-white/50'
+              }`}
+            />
+          </div>
+        ) : null}
+
+        {/* Swipe hint */}
+        {hasSeriesIntro && showSwipeHint && currentSlide === 1 ? (
+          <div className="absolute inset-x-0 bottom-20 z-10 flex justify-center animate-[bounce_1s_ease-in-out_infinite]">
+            <div className="flex items-center gap-2 rounded-full bg-black/60 px-4 py-2 text-sm text-white backdrop-blur-sm">
+              <svg className="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>右滑查看系列介绍</span>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Slides container */}
+        <div
+          className="flex h-full transition-transform duration-300 ease-out"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {/* Slide 0: Series intro (negative screen) */}
+          {hasSeriesIntro ? (
+            <div className="h-full w-full shrink-0 overflow-y-auto bg-gradient-to-br from-neutral-800 via-neutral-700 to-neutral-600 p-5">
+              <div className="flex h-full flex-col">
+                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-white/70">
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  <span>系列介绍</span>
+                </div>
+                <div className="mt-2 text-xl font-bold text-white sm:text-2xl">{activeSeries?.name}</div>
+                <div className="mt-4 flex-1 space-y-3 text-sm leading-relaxed text-white/90">
+                  {seriesIntroItems.map((line, idx) => (
+                    <p key={idx}>{line}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Slide 1: Image (main screen) */}
+          <div className="relative h-full w-full shrink-0">
+            {mainImage?.url ? (
+              <img src={createImageUrl(mainImage.url)} alt={mainImage.alt || breederCode} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">暂无图片</div>
+            )}
+            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/35 to-transparent" />
+            <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
+              <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-neutral-900">
+                {sexLabel(breederSex)}
+              </span>
+              {activeSeries?.name ? (
+                <span className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white">
+                  系列 {activeSeries.name}
+                </span>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SeriesDescriptionCard: React.FC<{ seriesName: string; seriesIntroItems: string[] }> = ({ seriesName, seriesIntroItems }) => {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  return (
+    <div className="overflow-hidden border border-black/5 bg-white/90 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex w-full items-center justify-between px-5 py-0 text-left transition hover:bg-gradient-to-br hover:from-neutral-50/50 hover:to-transparent sm:px-6"
+      >
+        <div>
+          <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-neutral-500">
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <span>系列描述</span>
+          </div>
+          <div className="mt-1 flex items-center gap-2">
+            <div className="text-lg font-semibold text-neutral-900 sm:text-xl">{seriesName}</div>
+            {seriesIntroItems.length > 0 ? (
+              <div className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
+                {seriesIntroItems.length}条
+              </div>
+            ) : null}
+          </div>
+        </div>
+        {seriesIntroItems.length > 0 ? (
+          <svg
+            className={`h-5 w-5 shrink-0 text-neutral-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        ) : null}
+      </button>
+
+      {seriesIntroItems.length > 0 ? (
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="border-t border-neutral-200/50 bg-gradient-to-br from-neutral-50/30 to-transparent px-5 pb-0 pt-3 sm:px-6">
+            <div className="space-y-2.5">
+              {seriesIntroItems.map((line, idx) => (
+                <div key={idx} className="flex gap-2.5 text-sm leading-relaxed text-neutral-700">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+                  <span>{line}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="border-t border-neutral-200/50 px-5 pb-0 sm:px-6">
+          <div className="text-sm text-neutral-500">当前系列暂无描述</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 const BreederDetail: React.FC = () => {
   const { id } = useParams();
@@ -32,11 +251,16 @@ const BreederDetail: React.FC = () => {
     retry: false,
   });
 
+  const seriesQ = useQuery({
+    queryKey: ['turtle-album', 'series'],
+    queryFn: () => turtleAlbumService.listSeries(),
+  });
+
   const isBreederNotFound = breederQ.isError && isBreederNotFoundError(breederQ.error);
 
-  const recordsQ = useQuery({
-    queryKey: ['turtle-album', 'breeder-records', breederId],
-    queryFn: () => turtleAlbumService.getBreederRecords(breederId),
+  const familyTreeQ = useQuery({
+    queryKey: ['turtle-album', 'breeder-family-tree', breederId],
+    queryFn: () => turtleAlbumService.getBreederFamilyTree(breederId),
     enabled: !!breederId && breederQ.isSuccess,
     retry: false,
   });
@@ -48,6 +272,20 @@ const BreederDetail: React.FC = () => {
     retry: false,
   });
 
+  const activeSeries = React.useMemo(() => {
+    if (!breederQ.data?.seriesId) return null;
+    return (seriesQ.data || []).find((s) => s.id === breederQ.data?.seriesId) || null;
+  }, [breederQ.data?.seriesId, seriesQ.data]);
+
+  const seriesIntroItems = React.useMemo(
+    () =>
+      (activeSeries?.description || '')
+        .split(/\n+/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    [activeSeries?.description],
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-white to-amber-50/40 text-black">
       <WeChatContactFab
@@ -56,16 +294,7 @@ const BreederDetail: React.FC = () => {
         wechat1QrUrl="https://api3.superbed.cn/static/images/2026/0218/d6/6995ae51556e27f1c93a2fd6.jpg"
         wechat2QrUrl="https://api3.superbed.cn/static/images/2026/0218/04/6995afba556e27f1c93a3004.jpg"
       />
-      <div className="w-full px-1 pb-8 pt-[calc(env(safe-area-inset-top)+18px)] sm:px-3 lg:px-5 2xl:px-6">
-        <div className="mb-5 flex items-center justify-between rounded-2xl border border-black/5 bg-white/75 px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur">
-          <Link to="/" className="text-sm text-neutral-600 hover:underline">← 返回</Link>
-          <div className="text-right">
-            <div className="text-xs uppercase tracking-widest text-neutral-500">turtle album</div>
-            <div className="mt-1 text-sm font-medium text-neutral-800">西瑞 · 果核选育溯源记录</div>
-            <div className="mt-1 text-xs text-neutral-500">长期专注果核繁殖选育</div>
-          </div>
-        </div>
-
+      <div className="w-full px-0 pb-8 pt-[env(safe-area-inset-top)] sm:px-0 lg:px-0 2xl:px-0">
         {breederQ.isLoading ? (
           <div className="rounded-2xl border border-neutral-200 bg-white/80 p-5 text-sm text-neutral-600 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">加载中...</div>
         ) : null}
@@ -125,46 +354,68 @@ const BreederDetail: React.FC = () => {
         ) : null}
 
         {breederQ.data ? (
-          <div className="grid gap-4 xl:grid-cols-[minmax(420px,500px)_1fr]">
-            {(() => {
-              const mainImage = (breederQ.data.images || []).find((i) => i.type === 'main') || (breederQ.data.images || [])[0];
-              if (!mainImage?.url) return null;
-              return (
-                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
-                  <div className="relative aspect-square bg-neutral-100">
-                    <img src={createImageUrl(mainImage.url)} alt={mainImage.alt || breederQ.data.code} className="h-full w-full object-cover" />
-                    <div className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs text-black">
-                      {breederQ.data.sex === 'female' ? '母' : breederQ.data.sex === 'male' ? '公' : '-'}
+          <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(340px,420px)_1fr] xl:gap-5">
+            <BreederCarousel
+              mainImage={(breederQ.data.images || []).find((i) => i.type === 'main') || (breederQ.data.images || [])[0]}
+              breederCode={breederQ.data.code}
+              breederSex={breederQ.data.sex}
+              activeSeries={activeSeries}
+              seriesIntroItems={seriesIntroItems}
+            />
+
+            <div className="flex flex-col space-y-4">
+              <div className="flex flex-1 flex-col overflow-hidden rounded-3xl border border-black/5 bg-white/90 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
+                <div className="p-5 sm:p-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl">
+                        {breederQ.data.name}
+                      </div>
+                      {breederQ.data.code !== breederQ.data.name ? (
+                        <div className="mt-1 text-sm text-neutral-500 sm:text-base">{breederQ.data.code}</div>
+                      ) : null}
                     </div>
+                    {typeof breederQ.data.offspringUnitPrice === 'number' ? (
+                      <div className="shrink-0 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 px-3.5 py-1.5 text-sm font-bold text-neutral-900 shadow-[0_4px_12px_rgba(251,191,36,0.4)] sm:text-base">
+                        子代 ¥ {breederQ.data.offspringUnitPrice}
+                      </div>
+                    ) : null}
                   </div>
-                </div>
-              );
-            })()}
 
-            <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="truncate text-xl font-semibold text-neutral-900 sm:text-2xl">{breederQ.data.name}</div>
-                    <div className="mt-1 text-sm text-neutral-500 sm:text-base">{breederQ.data.code}</div>
-                  </div>
-                  {typeof breederQ.data.offspringUnitPrice === 'number' ? (
-                    <div className="shrink-0 text-lg font-semibold text-[#FFD400] sm:text-xl">子代 ¥ {breederQ.data.offspringUnitPrice}</div>
+                  {(breederQ.data.sireCode || breederQ.data.damCode) ? (
+                    <div className="mt-4 flex flex-wrap gap-2 text-xs sm:text-sm">
+                      {breederQ.data.sireCode ? (
+                        <div className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span>父本：{breederQ.data.sireCode}</span>
+                        </div>
+                      ) : null}
+                      {breederQ.data.damCode ? (
+                        <div className="flex items-center gap-1.5 rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-700">
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span>母本：{breederQ.data.damCode}</span>
+                        </div>
+                      ) : null}
+                    </div>
                   ) : null}
-                </div>
 
-                {breederQ.data.description ? (
-                  <div className="mt-3 text-sm leading-relaxed text-neutral-800 whitespace-pre-wrap sm:text-base">
-                    {breederQ.data.description}
-                  </div>
-                ) : null}
-
-                <div className="mt-4 flex flex-wrap gap-2 text-xs text-neutral-700 sm:text-[11px]">
-                  {breederQ.data.sireCode ? (
-                    <span className="rounded-full bg-neutral-100 px-2 py-1">父 {breederQ.data.sireCode}</span>
-                  ) : null}
-                  {breederQ.data.damCode ? (
-                    <span className="rounded-full bg-neutral-100 px-2 py-1">母 {breederQ.data.damCode}</span>
+                  {breederQ.data.description ? (
+                    <div className="mt-4 rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50/80 to-yellow-50/50 p-3">
+                      <div className="flex flex-wrap gap-2">
+                        {breederQ.data.description.split(/[,，\s]+/).filter(Boolean).map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="rounded-lg border border-amber-300/50 bg-white/80 px-2.5 py-1 text-sm font-medium text-amber-900 shadow-sm"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   ) : null}
                 </div>
               </div>
@@ -172,116 +423,32 @@ const BreederDetail: React.FC = () => {
           </div>
         ) : null}
 
-        <div className="mt-6">
-          <div className="mb-2 text-sm font-medium">记录</div>
-          {recordsQ.isLoading ? <div className="text-sm text-neutral-600">loading...</div> : null}
-          {recordsQ.isError ? (
-            <div className="rounded-xl border border-red-200 bg-red-50/80 p-3 text-sm text-red-600">
-              {(recordsQ.error as Error).message}
+        {/* Family Tree Section */}
+        <div className="mt-8 px-1 sm:px-3 lg:px-5 2xl:px-6">
+          <div className="mb-4 flex items-center gap-2">
+            <svg className="h-5 w-5 text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            </svg>
+            <h2 className="text-lg font-semibold text-neutral-900">家族谱系</h2>
+          </div>
+          {familyTreeQ.isLoading ? (
+            <div className="rounded-2xl border border-neutral-200 bg-white/80 p-6 text-center text-sm text-neutral-600">
+              <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600"></div>
+              <div className="mt-2">加载中...</div>
             </div>
           ) : null}
-
-          {recordsQ.data ? (
-            <div className="space-y-4">
-              <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="text-sm font-medium">交配</div>
-                  <div className="text-xs text-neutral-500">
-                    {(recordsQ.data.matingRecordsAsFemale || []).length + (recordsQ.data.matingRecordsAsMale || []).length} 条
-                  </div>
-                </div>
-
-                {(recordsQ.data.matingRecordsAsFemale || []).length === 0 &&
-                (recordsQ.data.matingRecordsAsMale || []).length === 0 ? (
-                  <div className="text-sm text-neutral-600">暂无交配记录</div>
-                ) : (
-                  <div className="relative pl-4">
-                    <div className="absolute left-1 top-0 h-full w-px bg-neutral-200" />
-
-                    <div className="space-y-3">
-                      {(recordsQ.data.matingRecordsAsFemale || []).map((r) => (
-                        <div key={r.id} className="relative">
-                          <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#FFD400]" />
-                          <div className="rounded-xl border border-neutral-200 bg-white p-3">
-                            <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
-                            <div className="mt-1 text-sm">
-                              配对：母 {r.femaleId.slice(0, 6)} / 公{' '}
-                              {r.male ? (
-                                <Link
-                                  to={`/breeder/${r.male.id}`}
-                                  className="font-medium underline decoration-neutral-300 hover:decoration-neutral-600"
-                                >
-                                  {r.male.code} · {r.male.name}
-                                </Link>
-                              ) : (
-                                r.maleId.slice(0, 6)
-                              )}
-                            </div>
-                            {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
-                          </div>
-                        </div>
-                      ))}
-
-                      {(recordsQ.data.matingRecordsAsMale || []).map((r) => (
-                        <div key={r.id} className="relative">
-                          <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#FFD400]" />
-                          <div className="rounded-xl border border-neutral-200 bg-white p-3">
-                            <div className="text-xs text-neutral-500">{fmt(r.matedAt)}</div>
-                            <div className="mt-1 text-sm">
-                              配对：母{' '}
-                              {r.female ? (
-                                <Link
-                                  to={`/breeder/${r.female.id}`}
-                                  className="font-medium underline decoration-neutral-300 hover:decoration-neutral-600"
-                                >
-                                  {r.female.code} · {r.female.name}
-                                </Link>
-                              ) : (
-                                r.femaleId.slice(0, 6)
-                              )}{' '}
-                              / 公 {r.maleId.slice(0, 6)}
-                            </div>
-                            {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {recordsQ.data.sex === 'female' ? (
-                <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div className="text-sm font-medium">下蛋</div>
-                    <div className="text-xs text-neutral-500">{(recordsQ.data.eggRecords || []).length} 条</div>
-                  </div>
-
-                  {(recordsQ.data.eggRecords || []).length === 0 ? (
-                    <div className="text-sm text-neutral-600">暂无下蛋记录</div>
-                  ) : (
-                    <div className="relative pl-4">
-                      <div className="absolute left-1 top-0 h-full w-px bg-neutral-200" />
-
-                      <div className="space-y-3">
-                        {(recordsQ.data.eggRecords || []).map((r) => (
-                          <div key={r.id} className="relative">
-                            <div className="absolute -left-[7px] top-3 h-2 w-2 rounded-full bg-[#FFD400]" />
-                            <div className="rounded-xl border border-neutral-200 bg-white p-3">
-                              <div className="text-xs text-neutral-500">{fmt(r.laidAt)}</div>
-                              <div className="mt-1 text-sm">数量：{typeof r.count === 'number' ? r.count : '-'}</div>
-                              {r.notes ? <div className="mt-1 text-sm text-neutral-700">{r.notes}</div> : null}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : null}
+          {familyTreeQ.isError ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50/80 p-5 text-sm text-red-600">
+              {(familyTreeQ.error as Error).message}
+            </div>
+          ) : null}
+          {familyTreeQ.data ? (
+            <div className="rounded-2xl border border-black/5 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
+              <FamilyTreeComponent familyTree={familyTreeQ.data} />
             </div>
           ) : null}
         </div>
+
       </div>
     </div>
   );

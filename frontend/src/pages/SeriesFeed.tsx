@@ -7,7 +7,7 @@ import WeChatContactFab from '@/components/turtle-album/WeChatContactFab';
 import { createImageUrl } from '@/lib/api';
 
 import { turtleAlbumService } from '@/services/turtleAlbumService';
-import type { Sex } from '@/types/turtleAlbum';
+import type { Breeder, Sex } from '@/types/turtleAlbum';
 
 const sexLabel = (sex?: Sex | null) => {
   if (sex === 'male') return '公';
@@ -15,11 +15,131 @@ const sexLabel = (sex?: Sex | null) => {
   return '-';
 };
 
+interface SeriesIntroCardProps {
+  seriesId?: string | null;
+  seriesName?: string;
+  seriesIntroItems: string[];
+  breeders: Breeder[];
+}
+
+const SeriesIntroCard: React.FC<SeriesIntroCardProps> = ({ seriesId, seriesName, seriesIntroItems, breeders }) => {
+  const [isManuallyCollapsed, setIsManuallyCollapsed] = React.useState(false);
+  const [hasManuallyInteracted, setHasManuallyInteracted] = React.useState(false);
+  const [isScrollCollapsed, setIsScrollCollapsed] = React.useState(false);
+
+  React.useEffect(() => {
+    // Reset intro interaction state when switching series.
+    setIsManuallyCollapsed(false);
+    setHasManuallyInteracted(false);
+  }, [seriesId]);
+
+  React.useEffect(() => {
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        // Keep auto-collapse behavior only before user manually toggles.
+        if (!hasManuallyInteracted) {
+          setIsScrollCollapsed(window.scrollY > 200);
+        }
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, [hasManuallyInteracted]);
+
+  if (seriesIntroItems.length === 0) return null;
+
+  const firstBreeder = breeders[0];
+  const bgImage = firstBreeder?.images?.find((i) => i.type === 'main') || firstBreeder?.images?.[0];
+
+  const isContentCollapsed = isManuallyCollapsed;
+  const isFullyHidden = isScrollCollapsed;
+
+  return (
+    <div
+      className={`mb-3 overflow-hidden rounded-2xl border border-black/5 shadow-[0_12px_30px_rgba(0,0,0,0.08)] transition-all duration-500 ${
+        isFullyHidden
+          ? 'max-h-0 opacity-0 -translate-y-4'
+          : isContentCollapsed
+          ? 'max-h-[80px] opacity-100 translate-y-0'
+          : 'max-h-[800px] opacity-100 translate-y-0'
+      }`}
+    >
+      <div className="relative overflow-hidden">
+        {bgImage?.url ? (
+          <>
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${createImageUrl(bgImage.url)})` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-black/50" />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 via-neutral-700 to-neutral-600" />
+        )}
+
+        <div className="relative">
+          <div className="flex items-center justify-between px-4 py-3 sm:px-5">
+            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-white/70">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <span>系列介绍</span>
+              <div className="ml-1 flex items-center gap-1">
+                <div className="text-base font-bold text-white sm:text-lg">{seriesName}</div>
+                <div className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+                  {seriesIntroItems.length}条
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setHasManuallyInteracted(true);
+                setIsManuallyCollapsed((prev) => !prev);
+              }}
+              className="rounded-full p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              <svg
+                className={`h-4 w-4 transition-transform ${isContentCollapsed ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+
+          <div
+            className={`overflow-hidden transition-all duration-300 ${
+              isContentCollapsed ? 'max-h-0 opacity-0' : 'max-h-[600px] opacity-100'
+            }`}
+          >
+            <div className="px-4 pb-3 sm:px-5">
+              <div className="space-y-2.5 text-sm leading-relaxed text-white/90">
+                {seriesIntroItems.map((item, idx) => (
+                  <p key={idx}>{item}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SeriesFeed: React.FC = () => {
   const [seriesId, setSeriesId] = React.useState<string | null>(null);
   const [sex, setSex] = React.useState<Sex | 'all'>('all');
-  const femaleRef = React.useRef<HTMLDivElement | null>(null);
-  const maleRef = React.useRef<HTMLDivElement | null>(null);
 
   const [isHeroCollapsed, setIsHeroCollapsed] = React.useState(false);
 
@@ -66,6 +186,12 @@ const SeriesFeed: React.FC = () => {
       }),
   });
 
+  const filteredBreeders = React.useMemo(() => {
+    const list = breedersQ.data || [];
+    if (sex === 'all') return list;
+    return list.filter((b) => b.sex === sex);
+  }, [breedersQ.data, sex]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-white to-amber-50/40 text-black">
       <WeChatContactFab
@@ -76,7 +202,7 @@ const SeriesFeed: React.FC = () => {
       />
       <div className="w-full px-1 pb-8 pt-[calc(env(safe-area-inset-top)+8px)] sm:px-3 lg:px-5 2xl:px-6">
         <header
-          className={`mb-4 overflow-hidden bg-neutral-900 transition-[max-height,opacity,transform] duration-300 ease-out shadow-[0_18px_50px_rgba(0,0,0,0.22)] sm:rounded-3xl ${
+          className={`mb-3 overflow-hidden bg-neutral-900 transition-[max-height,opacity,transform] duration-300 ease-out shadow-[0_18px_50px_rgba(0,0,0,0.22)] sm:rounded-2xl ${
             isHeroCollapsed ? 'max-h-20 opacity-0 -translate-y-2' : 'max-h-[240px] opacity-100 translate-y-0 lg:max-h-[320px]'
           }`}
         >
@@ -97,7 +223,7 @@ const SeriesFeed: React.FC = () => {
         </header>
 
         <div
-          className="sticky z-30 mb-6 border border-black/5 bg-white/88 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur supports-[backdrop-filter]:bg-white/75 sm:rounded-2xl"
+          className="sticky z-30 mb-3 border border-black/5 bg-white/95 px-3 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90 sm:rounded-2xl"
           style={{ top: 'calc(env(safe-area-inset-top) + 10px)' }}
         >
           <div className="flex flex-col gap-3">
@@ -135,19 +261,7 @@ const SeriesFeed: React.FC = () => {
                   <button
                     key={t.key}
                     type="button"
-                    onClick={() => {
-                      if (t.key === 'female') {
-                        setSex('all');
-                        requestAnimationFrame(() => femaleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-                        return;
-                      }
-                      if (t.key === 'male') {
-                        setSex('all');
-                        requestAnimationFrame(() => maleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-                        return;
-                      }
-                      setSex(t.key);
-                    }}
+                    onClick={() => setSex(t.key)}
                     className={`h-8 rounded-full border px-3 text-xs shadow-[0_1px_0_rgba(0,0,0,0.04)] transition lg:h-9 lg:px-4 lg:text-sm ${
                       sex === t.key
                         ? 'border-[#FFD400] bg-white text-black shadow-[0_6px_20px_rgba(255,212,0,0.22)]'
@@ -172,9 +286,7 @@ const SeriesFeed: React.FC = () => {
         </div>
 
         {(() => {
-          const allBreeders = breedersQ.data || [];
-          const females = allBreeders.filter((b) => b.sex === 'female');
-          const males = allBreeders.filter((b) => b.sex === 'male');
+          const allBreeders = filteredBreeders;
 
           const Card = ({ b }: { b: (typeof allBreeders)[number] }) => {
             const mainImage = (b.images || []).find((i) => i.type === 'main') || (b.images || [])[0];
@@ -209,10 +321,8 @@ const SeriesFeed: React.FC = () => {
                   </div>
 
                   {b.description ? (
-                    <div className="mt-1.5">
-                      <span className="inline-flex max-w-full rounded-full bg-neutral-100/80 px-2 py-0.5 text-[11px] leading-5 text-neutral-700 sm:text-xs">
-                        <span className="line-clamp-2">{b.description}</span>
-                      </span>
+                    <div className="mt-2 rounded-xl bg-neutral-100/80 px-2.5 py-1.5 text-xs leading-relaxed text-neutral-700 sm:text-sm">
+                      <span className="line-clamp-2">{b.description}</span>
                     </div>
                   ) : null}
                 </div>
@@ -221,7 +331,7 @@ const SeriesFeed: React.FC = () => {
           };
 
           const Masonry = ({ list }: { list: typeof allBreeders }) => (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] sm:gap-4 xl:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
               {list.map((b) => (
                 <Card key={b.id} b={b} />
               ))}
@@ -238,50 +348,18 @@ const SeriesFeed: React.FC = () => {
             .map((s) => s.trim())
             .filter(Boolean);
 
-          const SeriesIntro = () => {
-            if (seriesIntroItems.length === 0) return null;
-            return (
-              <div className="mb-6">
-                <div className="mb-2 text-xs font-medium text-neutral-500">本系列介绍</div>
-                <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {seriesIntroItems.map((t) => (
-                    <div
-                      key={t}
-                      className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-700"
-                    >
-                      {t}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          };
-
-          // When sex=all, show 2 sections. Quick-jump is handled by the sex chips (种母/种公).
-          if (sex === 'all') {
-            return (
-              <div className="space-y-6">
-                <SeriesIntro />
-                <div ref={femaleRef} className="rounded-3xl border border-black/5 bg-white/70 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.05)] backdrop-blur sm:p-5 lg:p-6">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div className="text-sm font-semibold text-neutral-900">种母</div>
-                    <div className="text-xs text-neutral-500">{females.length}</div>
-                  </div>
-                  <Masonry list={females} />
-                </div>
-
-                <div ref={maleRef} className="rounded-3xl border border-black/5 bg-white/70 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.05)] backdrop-blur sm:p-5 lg:p-6">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div className="text-sm font-semibold text-neutral-900">种公</div>
-                    <div className="text-xs text-neutral-500">{males.length}</div>
-                  </div>
-                  <Masonry list={males} />
-                </div>
-              </div>
-            );
-          }
-
-          return <Masonry list={allBreeders} />;
+          // Show all breeders in a single masonry grid
+          return (
+            <div>
+              <SeriesIntroCard
+                seriesId={seriesId}
+                seriesName={activeSeries?.name}
+                seriesIntroItems={seriesIntroItems}
+                breeders={allBreeders}
+              />
+              <Masonry list={allBreeders} />
+            </div>
+          );
         })()}
       </div>
     </div>
