@@ -3,6 +3,7 @@ import React from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, ShoppingCart, Heart, Award } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { useRequireAuth } from "@/hooks/useAuth";
@@ -115,64 +116,64 @@ const AdminDashboard = () => {
   return (
     <AdminLayout title="控制面板">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-4 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 mb-4 sm:mb-8">
         <Card>
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">产品总数</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">{totalProducts}</h3>
+          <CardContent className="p-2 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 leading-tight">产品总数</p>
+              <h3 className="text-xl sm:text-3xl font-bold text-gray-900 mt-0.5 sm:mt-1 leading-none">{totalProducts}</h3>
             </div>
-            <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-700">
-              <Package className="h-6 w-6" />
+            <div className="hidden sm:flex h-10 w-10 sm:h-12 sm:w-12 bg-gray-100 rounded-full items-center justify-center text-gray-700">
+              <Package className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">有货产品</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">{inStockProducts}</h3>
+          <CardContent className="p-2 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 leading-tight">有货产品</p>
+              <h3 className="text-xl sm:text-3xl font-bold text-gray-900 mt-0.5 sm:mt-1 leading-none">{inStockProducts}</h3>
             </div>
-            <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-700">
-              <ShoppingCart className="h-6 w-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">热门产品</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">{popularProducts}</h3>
-            </div>
-            <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-700">
-              <Heart className="h-6 w-6" />
+            <div className="hidden sm:flex h-10 w-10 sm:h-12 sm:w-12 bg-gray-100 rounded-full items-center justify-center text-gray-700">
+              <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">产品类型</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">{productTypes}</h3>
+          <CardContent className="p-2 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 leading-tight">热门产品</p>
+              <h3 className="text-xl sm:text-3xl font-bold text-gray-900 mt-0.5 sm:mt-1 leading-none">{popularProducts}</h3>
             </div>
-            <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-700">
-              <Award className="h-6 w-6" />
+            <div className="hidden sm:flex h-10 w-10 sm:h-12 sm:w-12 bg-gray-100 rounded-full items-center justify-center text-gray-700">
+              <Heart className="h-5 w-5 sm:h-6 sm:w-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-2 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 leading-tight">产品类型</p>
+              <h3 className="text-xl sm:text-3xl font-bold text-gray-900 mt-0.5 sm:mt-1 leading-none">{productTypes}</h3>
+            </div>
+            <div className="hidden sm:flex h-10 w-10 sm:h-12 sm:w-12 bg-gray-100 rounded-full items-center justify-center text-gray-700">
+              <Award className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      {/* Charts (desktop) */}
+      <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6 mb-4 sm:mb-8">
         <Card>
-          <CardHeader>
-            <CardTitle>产品类型分布</CardTitle>
+          <CardHeader className="px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3">
+            <CardTitle className="text-xl sm:text-2xl">产品类型分布</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="h-80">
+          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+            <div className="h-56 sm:h-80">
               {productTypesData.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-gray-600">
                   暂无数据
@@ -198,11 +199,11 @@ const AdminDashboard = () => {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>形状与工艺分布</CardTitle>
+          <CardHeader className="px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3">
+            <CardTitle className="text-xl sm:text-2xl">形状与工艺分布</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="h-80 flex items-center justify-center">
+          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+            <div className="h-56 sm:h-80 flex items-center justify-center">
               {shapeProcessData.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-gray-600">
                   暂无数据
@@ -239,17 +240,94 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Product Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Charts (mobile tabs) */}
+      <div className="lg:hidden mb-4">
         <Card>
-          <CardHeader>
-            <CardTitle>最新产品</CardTitle>
+          <CardHeader className="px-3 pt-3 pb-2">
+            <CardTitle className="text-lg">数据分布</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="px-3 pb-3">
+            <Tabs defaultValue="types" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-3">
+                <TabsTrigger value="types">产品类型</TabsTrigger>
+                <TabsTrigger value="shapeProcess">形状/工艺</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="types" className="mt-0">
+                <div className="h-52">
+                  {productTypesData.length === 0 ? (
+                    <div className="h-full flex items-center justify-center text-gray-600">
+                      暂无数据
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={productTypesData}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#FFFFFF',
+                            borderColor: '#E5E7EB',
+                            borderRadius: '4px'
+                          }}
+                        />
+                        <Bar dataKey="value" fill="#6B7280" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="shapeProcess" className="mt-0">
+                <div className="h-52 flex items-center justify-center">
+                  {shapeProcessData.length === 0 ? (
+                    <div className="h-full flex items-center justify-center text-gray-600">
+                      暂无数据
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={shapeProcessData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={64}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {shapeProcessData.map((entry, index) => (
+                            <Cell key={`mobile-cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#FFFFFF',
+                            borderColor: '#E5E7EB',
+                            borderRadius: '4px'
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Product Lists */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
+        <Card>
+          <CardHeader className="px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3">
+            <CardTitle className="text-xl sm:text-2xl">最新产品</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+            <div className="space-y-2 sm:space-y-4">
               {recentProducts.map((product) => (
-                <div key={product.id} className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-md transition-colors">
-                  <div className="h-12 w-12 bg-white border border-gray-200 rounded flex items-center justify-center overflow-hidden">
+                <div key={product.id} className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 hover:bg-gray-50 rounded-md transition-colors">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-white border border-gray-200 rounded flex items-center justify-center overflow-hidden">
                     {product.images && product.images[0] ? (
                       <img
                         src={product.images[0].url}
@@ -257,16 +335,16 @@ const AdminDashboard = () => {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <Package className="h-6 w-6 text-gray-300" />
+                      <Package className="h-5 w-5 sm:h-6 sm:w-6 text-gray-300" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{product.name}</p>
                     <p className="text-xs text-gray-600">
                       {new Date(product.createdAt).toLocaleDateString('zh-CN')}
                     </p>
                   </div>
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-xs sm:text-sm font-medium text-gray-900">
                     ¥{product.pricing.factoryPrice.toFixed(2)}
                   </div>
                 </div>
@@ -276,14 +354,14 @@ const AdminDashboard = () => {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>热门产品</CardTitle>
+          <CardHeader className="px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3">
+            <CardTitle className="text-xl sm:text-2xl">热门产品</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+            <div className="space-y-2 sm:space-y-4">
               {topProducts.map((product) => (
-                <div key={product.id} className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-md transition-colors">
-                  <div className="h-12 w-12 bg-white border border-gray-200 rounded flex items-center justify-center overflow-hidden">
+                <div key={product.id} className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 hover:bg-gray-50 rounded-md transition-colors">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-white border border-gray-200 rounded flex items-center justify-center overflow-hidden">
                     {product.images && product.images[0] ? (
                       <img
                         src={product.images[0].url}
@@ -291,16 +369,16 @@ const AdminDashboard = () => {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <Package className="h-6 w-6 text-gray-300" />
+                      <Package className="h-5 w-5 sm:h-6 sm:w-6 text-gray-300" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{product.name}</p>
                     <p className="text-xs text-gray-600">
                       人气: {product.popularityScore}/100
                     </p>
                   </div>
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-xs sm:text-sm font-medium text-gray-900">
                     ¥{product.pricing.factoryPrice.toFixed(2)}
                   </div>
                 </div>

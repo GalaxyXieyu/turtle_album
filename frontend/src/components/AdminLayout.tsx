@@ -59,7 +59,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
     { path: "/admin/dashboard", label: "控制面板", icon: LayoutDashboard },
     { path: "/admin/products", label: "产品管理", icon: Package },
     { path: "/admin/carousels", label: "轮播图管理", icon: Image },
-    { path: "/admin/featured-products", label: "精选产品", icon: Star },
+    { path: "/admin/featured-products", label: "活动产品", icon: Star },
     { path: "/admin/settings", label: "系统设置", icon: Settings },
   ];
 
@@ -67,9 +67,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
     <div className="min-h-screen bg-neutral-50 flex flex-col lg:flex-row">
       {/* Mobile Navigation Header */}
       <div className="lg:hidden bg-white border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
-        <Link to="/admin/dashboard" className="flex items-center">
-          <span className="font-semibold text-base tracking-wide text-neutral-900">Turtle Album</span>
-        </Link>
+        <div className="h-6 w-6" />
         <button
           onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
           className="text-gray-600 hover:text-gray-900 p-1"
