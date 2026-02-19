@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useRequireAuth } from "@/hooks/useAuth";
 import { Product } from "@/types/products";
+import { createApiUrl, createImageUrl, API_ENDPOINTS } from "@/lib/api";
 import {
   Table,
   TableBody,
@@ -57,6 +58,12 @@ interface FeaturedProduct {
   updatedAt: string;
 }
 
+interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  success?: boolean;
+}
+
 const AdminFeaturedProducts = () => {
   // Protect admin route
   const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
@@ -82,19 +89,22 @@ const AdminFeaturedProducts = () => {
     }
   });
 
-  // API functions (placeholder - will be implemented with actual API calls)
   const fetchFeaturedProducts = async () => {
     setIsLoading(true);
     try {
-      // TODO: Implement actual API call
-      // const response = await fetch('/api/featured-products', { headers: { Authorization: `Bearer ${token}` } });
-      // const data = await response.json();
-      // setFeaturedProducts(data.data);
-      setFeaturedProducts([]); // Placeholder
+      const token = localStorage.getItem("admin_token");
+      const response = await fetch(createApiUrl(API_ENDPOINTS.FEATURED_PRODUCTS), {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data: ApiResponse<FeaturedProduct[]> = await response.json();
+      setFeaturedProducts(data.data || []);
     } catch (error) {
       toast({
         title: "加载失败",
-        description: "获取精选产品列表时发生错误",
+        description: "获取活动产品列表时发生错误",
         variant: "destructive",
       });
     } finally {
@@ -104,11 +114,12 @@ const AdminFeaturedProducts = () => {
 
   const fetchAvailableProducts = async () => {
     try {
-      // TODO: Implement actual API call
-      // const response = await fetch('/api/products');
-      // const data = await response.json();
-      // setAvailableProducts(data.data.products);
-      setAvailableProducts([]); // Placeholder
+      const response = await fetch(createApiUrl(`${API_ENDPOINTS.PRODUCTS}?page=1&limit=1000`));
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data: ApiResponse<{ products: Product[] }> = await response.json();
+      setAvailableProducts(data.data?.products || []);
     } catch (error) {
       toast({
         title: "加载失败",
@@ -120,38 +131,60 @@ const AdminFeaturedProducts = () => {
 
   const handleAddFeaturedProduct = async (values: z.infer<typeof formSchema>) => {
     try {
-      // TODO: Implement actual API call
-      console.log("Adding featured product:", values);
+      const token = localStorage.getItem("admin_token");
+      const response = await fetch(createApiUrl(API_ENDPOINTS.FEATURED_PRODUCTS), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          product_id: values.productId,
+          sort_order: values.sortOrder,
+          is_active: true,
+        }),
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || err.message || `HTTP ${response.status}`);
+      }
       toast({
         title: "添加成功",
-        description: "产品已添加到精选列表",
+        description: "产品已添加到活动列表",
       });
       setIsAddDialogOpen(false);
       addForm.reset();
-      fetchFeaturedProducts();
+      await fetchFeaturedProducts();
     } catch (error) {
       toast({
         title: "添加失败",
-        description: "添加精选产品时发生错误",
+        description: error instanceof Error ? error.message : "添加活动产品时发生错误",
         variant: "destructive",
       });
     }
   };
 
   const handleRemoveFeaturedProduct = async (featuredId: string) => {
-    if (confirm("确定要从精选列表中移除该产品吗？")) {
+    if (confirm("确定要从活动列表中移除该产品吗？")) {
       try {
-        // TODO: Implement actual API call
-        console.log("Removing featured product:", featuredId);
+        const token = localStorage.getItem("admin_token");
+        const response = await fetch(createApiUrl(`${API_ENDPOINTS.FEATURED_PRODUCTS}/${featuredId}`), {
+          method: "DELETE",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.detail || err.message || `HTTP ${response.status}`);
+        }
         toast({
           title: "移除成功",
-          description: "产品已从精选列表中移除",
+          description: "产品已从活动列表中移除",
         });
-        fetchFeaturedProducts();
+        await fetchFeaturedProducts();
       } catch (error) {
         toast({
           title: "移除失败",
-          description: "移除精选产品时发生错误",
+          description: error instanceof Error ? error.message : "移除活动产品时发生错误",
           variant: "destructive",
         });
       }
@@ -159,13 +192,75 @@ const AdminFeaturedProducts = () => {
   };
 
   const handleMoveUp = async (featured: FeaturedProduct) => {
-    // TODO: Implement move up logic
-    console.log("Moving up:", featured.id);
+    const sorted = [...featuredProducts].sort((a, b) => a.sortOrder - b.sortOrder);
+    const idx = sorted.findIndex((item) => item.id === featured.id);
+    if (idx <= 0) return;
+
+    const prev = sorted[idx - 1];
+    try {
+      const token = localStorage.getItem("admin_token");
+      await Promise.all([
+        fetch(createApiUrl(`${API_ENDPOINTS.FEATURED_PRODUCTS}/${featured.id}`), {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ sort_order: prev.sortOrder }),
+        }),
+        fetch(createApiUrl(`${API_ENDPOINTS.FEATURED_PRODUCTS}/${prev.id}`), {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ sort_order: featured.sortOrder }),
+        }),
+      ]);
+      await fetchFeaturedProducts();
+    } catch (error) {
+      toast({
+        title: "排序失败",
+        description: "上移活动产品失败",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleMoveDown = async (featured: FeaturedProduct) => {
-    // TODO: Implement move down logic
-    console.log("Moving down:", featured.id);
+    const sorted = [...featuredProducts].sort((a, b) => a.sortOrder - b.sortOrder);
+    const idx = sorted.findIndex((item) => item.id === featured.id);
+    if (idx < 0 || idx >= sorted.length - 1) return;
+
+    const next = sorted[idx + 1];
+    try {
+      const token = localStorage.getItem("admin_token");
+      await Promise.all([
+        fetch(createApiUrl(`${API_ENDPOINTS.FEATURED_PRODUCTS}/${featured.id}`), {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ sort_order: next.sortOrder }),
+        }),
+        fetch(createApiUrl(`${API_ENDPOINTS.FEATURED_PRODUCTS}/${next.id}`), {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ sort_order: featured.sortOrder }),
+        }),
+      ]);
+      await fetchFeaturedProducts();
+    } catch (error) {
+      toast({
+        title: "排序失败",
+        description: "下移活动产品失败",
+        variant: "destructive",
+      });
+    }
   };
 
   // Filter available products based on search
@@ -199,19 +294,19 @@ const AdminFeaturedProducts = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">精选产品管理</h1>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">活动产品管理</h1>
           <Button 
             onClick={() => setIsAddDialogOpen(true)}
-            className="bg-gray-900 hover:bg-gray-800 text-white"
+            className="bg-gray-900 hover:bg-gray-800 text-white w-full sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-2" />
-            添加精选产品
+            添加活动产品
           </Button>
         </div>
 
-        {/* Featured Products Table */}
-        <div className="bg-white rounded-lg shadow">
+        {/* Desktop table */}
+        <div className="hidden md:block bg-white rounded-lg shadow">
           <Table>
             <TableHeader>
               <TableRow>
@@ -228,7 +323,7 @@ const AdminFeaturedProducts = () => {
               {featuredProducts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    暂无精选产品数据
+                    {isLoading ? "加载中..." : "暂无活动产品数据"}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -238,7 +333,7 @@ const AdminFeaturedProducts = () => {
                       <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center">
                         {featured.product.images.length > 0 ? (
                           <img 
-                            src={featured.product.images[0].url} 
+                            src={createImageUrl(featured.product.images[0].url)}
                             alt={featured.product.images[0].alt}
                             className="w-full h-full object-cover rounded"
                           />
@@ -288,15 +383,83 @@ const AdminFeaturedProducts = () => {
             </TableBody>
           </Table>
         </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden space-y-3">
+          {featuredProducts.length === 0 ? (
+            <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
+              {isLoading ? "加载中..." : "暂无活动产品数据"}
+            </div>
+          ) : (
+            featuredProducts.map((featured) => (
+              <div key={featured.id} className="bg-white rounded-lg border border-gray-200 p-3">
+                <div className="flex gap-3">
+                  <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex items-center justify-center flex-shrink-0">
+                    {featured.product.images.length > 0 ? (
+                      <img
+                        src={createImageUrl(featured.product.images[0].url)}
+                        alt={featured.product.images[0].alt || featured.product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-gray-400 text-xs">无图片</span>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-gray-900 truncate">{featured.product.name}</p>
+                    <p className="text-sm text-gray-600 mt-0.5">货号: {featured.product.code}</p>
+                    <p className="text-sm text-gray-600 truncate mt-0.5">
+                      {featured.product.tubeType || featured.product.boxType || featured.product.processType || "-"}
+                    </p>
+                    <div className="mt-1 text-sm text-gray-900 font-medium">
+                      ¥{featured.product.pricing.factoryPrice.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                  <span className="text-xs text-gray-500">排序: {featured.sortOrder}</span>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleMoveUp(featured)}
+                      className="text-gray-600 hover:text-gray-900 h-8 w-8 p-0"
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleMoveDown(featured)}
+                      className="text-gray-600 hover:text-gray-900 h-8 w-8 p-0"
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveFeaturedProduct(featured.id)}
+                      className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
-      {/* Add Featured Product Dialog */}
+      {/* Add Activity Product Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>添加精选产品</DialogTitle>
+            <DialogTitle>添加活动产品</DialogTitle>
             <DialogDescription>
-              选择产品添加到精选列表
+              选择产品添加到活动列表
             </DialogDescription>
           </DialogHeader>
           

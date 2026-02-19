@@ -325,8 +325,8 @@ const AdminCarouselManager: React.FC = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">轮播图管理</h1>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">轮播图管理</h1>
           <Button 
             onClick={() => {
               setSelectedImage(null);
@@ -334,15 +334,15 @@ const AdminCarouselManager: React.FC = () => {
               createForm.reset();
               setIsCreateDialogOpen(true);
             }}
-            className="bg-gray-900 hover:bg-gray-800 text-white"
+            className="bg-gray-900 hover:bg-gray-800 text-white w-full sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-2" />
             添加轮播图
           </Button>
         </div>
 
-        {/* Carousels Table */}
-        <div className="bg-white rounded-lg shadow">
+        {/* Desktop table */}
+        <div className="hidden md:block bg-white rounded-lg shadow">
           <Table>
             <TableHeader>
               <TableRow>
@@ -420,6 +420,71 @@ const AdminCarouselManager: React.FC = () => {
               )}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden space-y-3">
+          {carousels.length === 0 ? (
+            <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
+              {isLoading ? "加载中..." : "暂无轮播图数据"}
+            </div>
+          ) : (
+            carousels.map((carousel) => (
+              <div key={carousel.id} className="bg-white rounded-lg border border-gray-200 p-3">
+                <div className="flex gap-3">
+                  <div className="w-24 h-16 bg-gray-100 rounded flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {carousel.imageUrl ? (
+                      <img
+                        src={createImageUrl(carousel.imageUrl)}
+                        alt={carousel.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <ImageIcon className={`h-6 w-6 text-gray-400 ${carousel.imageUrl ? 'hidden' : ''}`} />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-gray-900 truncate">{carousel.title}</p>
+                    <p className="text-sm text-gray-600 mt-0.5 truncate">{carousel.description || "—"}</p>
+                    <div className="mt-2 flex items-center gap-2 text-xs">
+                      <span className={`px-2 py-1 rounded-full ${
+                        carousel.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"
+                      }`}>
+                        {carousel.isActive ? "启用" : "禁用"}
+                      </span>
+                      <span className="text-gray-500">排序: {carousel.sortOrder}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEditCarousel(carousel)}
+                    className="text-gray-600 hover:text-gray-900 h-8"
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    编辑
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteCarousel(carousel.id)}
+                    className="text-red-500 hover:text-red-700 h-8"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    删除
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
