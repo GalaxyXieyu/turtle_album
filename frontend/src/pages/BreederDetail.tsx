@@ -32,14 +32,14 @@ const BreederDetail: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-white to-amber-50/40 text-black">
       <WeChatContactFab
         wechat1Id="Siri08888"
         wechat2Id="Awen02222"
         wechat1QrUrl="https://api3.superbed.cn/static/images/2026/0218/d6/6995ae51556e27f1c93a2fd6.jpg"
         wechat2QrUrl="https://api3.superbed.cn/static/images/2026/0218/04/6995afba556e27f1c93a3004.jpg"
       />
-      <div className="w-full px-3 pb-8 pt-[calc(env(safe-area-inset-top)+24px)] sm:px-4 lg:px-8 xl:px-10">
+      <div className="w-full px-2 pb-8 pt-[calc(env(safe-area-inset-top)+24px)] sm:px-4 lg:px-8 xl:px-12 2xl:px-16">
         <div className="mb-6 flex items-center justify-between">
           <Link to="/" className="text-sm text-neutral-600 hover:underline">← 返回</Link>
           <div className="text-right">
@@ -55,12 +55,12 @@ const BreederDetail: React.FC = () => {
         ) : null}
 
         {breederQ.data ? (
-          <div className="grid gap-4 xl:grid-cols-[minmax(360px,440px)_1fr]">
+          <div className="grid gap-4 xl:grid-cols-[minmax(420px,500px)_1fr]">
             {(() => {
               const mainImage = (breederQ.data.images || []).find((i) => i.type === 'main') || (breederQ.data.images || [])[0];
               if (!mainImage?.url) return null;
               return (
-                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]">
+                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
                   <div className="relative aspect-square bg-neutral-100">
                     <img src={createImageUrl(mainImage.url)} alt={mainImage.alt || breederQ.data.code} className="h-full w-full object-cover" />
                     <div className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs text-black">
@@ -71,7 +71,7 @@ const BreederDetail: React.FC = () => {
               );
             })()}
 
-            <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]">
+            <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
               <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">

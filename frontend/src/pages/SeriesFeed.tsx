@@ -67,37 +67,37 @@ const SeriesFeed: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-white to-amber-50/40 text-black">
       <WeChatContactFab
         wechat1Id="Siri08888"
         wechat2Id="Awen02222"
         wechat1QrUrl="https://api3.superbed.cn/static/images/2026/0218/d6/6995ae51556e27f1c93a2fd6.jpg"
         wechat2QrUrl="https://api3.superbed.cn/static/images/2026/0218/04/6995afba556e27f1c93a3004.jpg"
       />
-      <div className="w-full px-3 pb-8 pt-[calc(env(safe-area-inset-top)+12px)] sm:px-4 lg:px-8 xl:px-10">
+      <div className="w-full px-2 pb-8 pt-[calc(env(safe-area-inset-top)+12px)] sm:px-4 lg:px-8 xl:px-12 2xl:px-16">
         <header
-          className={`mb-4 overflow-hidden rounded-3xl bg-neutral-900 transition-[max-height,opacity,transform] duration-300 ease-out ${
-            isHeroCollapsed ? 'max-h-20 opacity-0 -translate-y-2' : 'max-h-[220px] opacity-100 translate-y-0'
+          className={`mb-4 overflow-hidden rounded-3xl bg-neutral-900 transition-[max-height,opacity,transform] duration-300 ease-out shadow-[0_18px_50px_rgba(0,0,0,0.22)] ${
+            isHeroCollapsed ? 'max-h-20 opacity-0 -translate-y-2' : 'max-h-[240px] opacity-100 translate-y-0 lg:max-h-[300px]'
           }`}
         >
-          <div className="relative h-[220px]">
+          <div className="relative h-[240px] lg:h-[300px]">
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: 'url(/turtle-hero.jpg)' }}
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/30 to-white/5" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/25 to-black/40" />
             <div className="absolute inset-0">
-              <div className="flex h-full flex-col justify-end p-5">
+              <div className="flex h-full flex-col justify-end p-5 lg:p-8">
                 <div className="text-xs uppercase tracking-widest text-white/70">turtle album</div>
-                <h1 className="mt-2 text-[26px] font-semibold leading-tight text-white drop-shadow-sm">西瑞 · 果核选育溯源记录</h1>
-                <div className="mt-2 text-sm leading-relaxed text-white/80">长期专注果核繁殖选育</div>
+                <h1 className="mt-2 text-[26px] font-semibold leading-tight text-white drop-shadow-sm lg:text-[34px]">西瑞 · 果核选育溯源记录</h1>
+                <div className="mt-2 text-sm leading-relaxed text-white/80 lg:text-base">长期专注果核繁殖选育</div>
               </div>
             </div>
           </div>
         </header>
 
         <div
-          className="sticky z-30 mb-6 rounded-2xl bg-white/80 p-4 backdrop-blur supports-[backdrop-filter]:bg-white/70"
+          className="sticky z-30 mb-6 rounded-2xl border border-black/5 bg-white/85 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur supports-[backdrop-filter]:bg-white/75"
           style={{ top: 'calc(env(safe-area-inset-top) + 10px)' }}
         >
           <div className="flex flex-col gap-3">
@@ -109,10 +109,10 @@ const SeriesFeed: React.FC = () => {
                     key={s.id}
                     type="button"
                     onClick={() => setSeriesId(s.id)}
-                    className={`h-8 rounded-full border px-3 text-xs shadow-[0_1px_0_rgba(0,0,0,0.04)] transition ${
+                    className={`h-8 rounded-full border px-3 text-xs shadow-[0_1px_0_rgba(0,0,0,0.04)] transition lg:h-9 lg:px-4 lg:text-sm ${
                       seriesId === s.id
-                        ? 'border-[#FFD400] bg-white text-black'
-                        : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'
+                        ? 'border-[#FFD400] bg-white text-black shadow-[0_6px_20px_rgba(255,212,0,0.22)]'
+                        : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 hover:shadow-sm'
                     }`}
                   >
                     {s.name}
@@ -148,10 +148,10 @@ const SeriesFeed: React.FC = () => {
                       }
                       setSex(t.key);
                     }}
-                    className={`h-8 rounded-full border px-3 text-xs shadow-[0_1px_0_rgba(0,0,0,0.04)] transition ${
+                    className={`h-8 rounded-full border px-3 text-xs shadow-[0_1px_0_rgba(0,0,0,0.04)] transition lg:h-9 lg:px-4 lg:text-sm ${
                       sex === t.key
-                        ? 'border-[#FFD400] bg-white text-black'
-                        : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'
+                        ? 'border-[#FFD400] bg-white text-black shadow-[0_6px_20px_rgba(255,212,0,0.22)]'
+                        : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 hover:shadow-sm'
                     }`}
                   >
                     {t.label}
@@ -183,7 +183,7 @@ const SeriesFeed: React.FC = () => {
               <Link
                 key={b.id}
                 to={`/breeder/${b.id}`}
-                className="mb-3 inline-block w-full break-inside-avoid overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)] transition active:scale-[0.995] active:shadow-[0_6px_18px_rgba(0,0,0,0.10)] hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_8px_28px_rgba(0,0,0,0.10)]"
+                className="group w-full overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition active:scale-[0.995] hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_12px_34px_rgba(0,0,0,0.14)]"
               >
                 <div className="relative aspect-[4/5] bg-neutral-100">
                   {mainImage?.url ? (
@@ -191,17 +191,18 @@ const SeriesFeed: React.FC = () => {
                   ) : (
                     <div className="h-full w-full bg-neutral-100" />
                   )}
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
                   <div className="absolute right-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-xs text-black">
                     {sexLabel(b.sex)}
                   </div>
                   {/* price moved below */}
                 </div>
 
-                <div className="p-3">
+                <div className="p-3 lg:p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0 text-sm font-semibold tracking-wide text-neutral-900 sm:text-base">{b.code}</div>
+                    <div className="min-w-0 text-sm font-semibold tracking-wide text-neutral-900 sm:text-base lg:text-lg">{b.code}</div>
                     {typeof b.offspringUnitPrice === 'number' ? (
-                      <span className="shrink-0 rounded-full bg-neutral-900/85 px-2 py-0.5 text-[11px] font-semibold leading-5 text-[#FFD400] ring-1 ring-white/10 sm:text-xs">
+                      <span className="shrink-0 rounded-full bg-neutral-900 px-2 py-0.5 text-[11px] font-semibold leading-5 text-[#FFD400] ring-1 ring-white/10 sm:text-xs">
                         子代 ¥ {b.offspringUnitPrice}
                       </span>
                     ) : null}
@@ -220,7 +221,7 @@ const SeriesFeed: React.FC = () => {
           };
 
           const Masonry = ({ list }: { list: typeof allBreeders }) => (
-            <div className="columns-1 gap-3 [column-fill:_balance] sm:columns-2 lg:columns-3 2xl:columns-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {list.map((b) => (
                 <Card key={b.id} b={b} />
               ))}
@@ -261,7 +262,7 @@ const SeriesFeed: React.FC = () => {
             return (
               <div className="space-y-6">
                 <SeriesIntro />
-                <div ref={femaleRef}>
+                <div ref={femaleRef} className="rounded-3xl border border-black/5 bg-white/70 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.05)] backdrop-blur sm:p-5 lg:p-6">
                   <div className="mb-3 flex items-center justify-between">
                     <div className="text-sm font-semibold text-neutral-900">种母</div>
                     <div className="text-xs text-neutral-500">{females.length}</div>
@@ -269,7 +270,7 @@ const SeriesFeed: React.FC = () => {
                   <Masonry list={females} />
                 </div>
 
-                <div ref={maleRef}>
+                <div ref={maleRef} className="rounded-3xl border border-black/5 bg-white/70 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.05)] backdrop-blur sm:p-5 lg:p-6">
                   <div className="mb-3 flex items-center justify-between">
                     <div className="text-sm font-semibold text-neutral-900">种公</div>
                     <div className="text-xs text-neutral-500">{males.length}</div>
