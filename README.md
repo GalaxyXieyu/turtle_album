@@ -62,14 +62,22 @@ npm install
 npm run dev
 ```
 
-默认地址：`http://localhost:8080`
+默认地址：`http://localhost:8080`（如被占用会自动使用 8081；以 `./dev.sh status` / `/tmp/turtle-frontend.log` 显示为准）
 
 ## 关键约定
 
-- 主数据库文件：`backend/data/app.db`
-- 生产环境可通过 `DATABASE_URL` 覆盖
-- 历史 DB 统一放 `backend/data/archive/`
-- 不再在仓库根目录或 `backend/` 根目录散落 `*.db`
+- 本地启动以 `./dev.sh` 为准（会同时拉起前后端，并自动处理端口占用）。
+- 前端端口：默认 `http://localhost:8080`，如被占用会自动使用 `8081`（端口会写入 `/tmp/turtle-frontend.log`）。
+- 后端端口：`http://localhost:8000`，健康检查：`http://localhost:8000/health`。
+- 主数据库文件（dev）：`backend/data/app.db`。
+- 生产环境：Docker 默认 `DATABASE_URL=sqlite:////data/app.db`（建议挂载 `/data` 做持久化）。
+- 历史 DB 统一放 `backend/data/archive/`。
+- 不要在仓库根目录或 `backend/` 根目录散落 `*.db`。
+
+## 截图/验证约定（避免误会）
+
+- 任何“本地效果截图”都必须基于 `./dev.sh start` 启动后的前端端口（8080/8081），不要用临时的 5173。
+- 截图前先人工打开页面确认一次，再上传图床发 URL。
 
 ## 常用命令
 
