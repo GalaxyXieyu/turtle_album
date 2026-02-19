@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: turtle-album
+  namespace: ns-lmgpb9nc
+  labels:
+    app: turtle-album
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: turtle-album
+  template:
+    metadata:
+      labels:
+        app: turtle-album
+    spec:
+      containers:
+        - name: turtle-album
+          image: galaxyxieyu/glam-cart:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: turtle-album
+  namespace: ns-lmgpb9nc
+  labels:
+    app: turtle-album
+spec:
+  selector:
+    app: turtle-album
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000

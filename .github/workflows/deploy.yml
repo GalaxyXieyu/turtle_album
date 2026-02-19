@@ -6,7 +6,11 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: glam-cart
+  IMAGE_NAME: ${{ vars.IMAGE_NAME || 'turtle_album' }}
+  K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE || 'ns-lmgpb9nc' }}
+  K8S_WORKLOAD_NAME: ${{ vars.K8S_WORKLOAD_NAME || 'turtle-album' }}
+  K8S_WORKLOAD_KIND: ${{ vars.K8S_WORKLOAD_KIND || 'auto' }}
+  K8S_CONTAINER_NAME: ${{ vars.K8S_CONTAINER_NAME || '' }}
 
 jobs:
   test:
@@ -105,5 +109,40 @@ jobs:
             printf '%s' "$KUBE_CONFIG_CONTENT" | tr -d '\r' > ~/.kube/config
             echo "kubeconfig loaded from raw yaml secret"
           fi
-          kubectl rollout restart statefulset/glam-cart -n ns-lmgpb9nc
-          kubectl rollout status statefulset/glam-cart -n ns-lmgpb9nc --timeout=120s
+          WORKLOAD_KIND="${K8S_WORKLOAD_KIND}"
+          WORKLOAD_NAME="${K8S_WORKLOAD_NAME}"
+          NAMESPACE="${K8S_NAMESPACE}"
+          IMAGE_REF="${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest"
+          echo "Deploy context: $(kubectl config current-context)"
+          echo "Deploy namespace: ${NAMESPACE}"
+
+          if [ "$WORKLOAD_KIND" = "auto" ]; then
+            if kubectl get deployment/"$WORKLOAD_NAME" -n "$NAMESPACE" >/dev/null 2>&1; then
+              WORKLOAD_KIND="deployment"
+            elif kubectl get statefulset/"$WORKLOAD_NAME" -n "$NAMESPACE" >/dev/null 2>&1; then
+              WORKLOAD_KIND="statefulset"
+            else
+              echo "::error::No deployment/statefulset named '$WORKLOAD_NAME' in namespace '$NAMESPACE'"
+              echo "Available workloads:"
+              kubectl get deploy,sts -n "$NAMESPACE" || true
+              exit 1
+            fi
+          fi
+
+          if [ "$WORKLOAD_KIND" != "deployment" ] && [ "$WORKLOAD_KIND" != "statefulset" ]; then
+            echo "::error::K8S_WORKLOAD_KIND must be 'deployment', 'statefulset', or 'auto'"
+            exit 1
+          fi
+
+          CONTAINER_NAME="${K8S_CONTAINER_NAME}"
+          if [ -z "$CONTAINER_NAME" ]; then
+            CONTAINER_NAME=$(kubectl get "$WORKLOAD_KIND"/"$WORKLOAD_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.template.spec.containers[0].name}')
+          fi
+          if [ -z "$CONTAINER_NAME" ]; then
+            echo "::error::Cannot resolve container name for $WORKLOAD_KIND/$WORKLOAD_NAME"
+            exit 1
+          fi
+
+          kubectl set image "$WORKLOAD_KIND"/"$WORKLOAD_NAME" "$CONTAINER_NAME"="$IMAGE_REF" -n "$NAMESPACE"
+          kubectl rollout restart "$WORKLOAD_KIND"/"$WORKLOAD_NAME" -n "$NAMESPACE"
+          kubectl rollout status "$WORKLOAD_KIND"/"$WORKLOAD_NAME" -n "$NAMESPACE" --timeout=180s
