@@ -186,15 +186,12 @@ export function useProductImages({ toast, editApi }: UseProductImagesArgs) {
 
       setImageUploads((prev) => {
         const next = prev.filter((u) => u.id !== args.imageId);
+        // Keep index in range after removal.
+        setCurrentImageIndex((idx) => Math.min(idx, Math.max(0, next.length - 1)));
         return next;
       });
-      setCurrentImageIndex((prev) => {
-        const nextLen = imageUploads.length - 1;
-        if (nextLen <= 0) return 0;
-        return prev >= nextLen ? nextLen - 1 : prev;
-      });
     },
-    [editApi, imageUploads.length, toast]
+    [editApi, toast]
   );
 
   const setMainImage = useCallback(
