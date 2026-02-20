@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productService, adminProductService } from '@/services/productService';
-import { Product, FilterOptions, SortOption, Material, Shape, TubeType, BoxType, ProcessType, FunctionalDesign } from '@/types/products';
+import { Product, FilterOptions, SortOption } from '@/types/products';
 import { useToast } from '@/hooks/use-toast';
 
 // Backend API data structure (snake_case) - matching the one in productService
@@ -10,12 +10,6 @@ interface BackendProductCreate {
   description?: string;
   stage?: string;
   status?: 'draft' | 'active' | 'reserved' | 'sold';
-  tube_type?: TubeType;
-  box_type?: BoxType;
-  process_type?: ProcessType;
-  functional_designs: FunctionalDesign[];
-  shape: Shape;
-  material: Material;
   dimensions: {
     weight?: number;
     length?: number;

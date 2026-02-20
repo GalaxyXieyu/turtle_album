@@ -1140,276 +1140,33 @@ const AdminProducts = () => {
         />
       </div>
 
-      {/* Desktop Table View */}
-      <div className="hidden md:block bg-white rounded-lg shadow-card border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">图片</TableHead>
-                <TableHead onClick={() => handleSort("name")} className="cursor-pointer">
-                  <div className="flex items-center">
-                    名称
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort("code")} className="cursor-pointer">
-                  <div className="flex items-center">
-                    货号
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead>性别</TableHead>
-                <TableHead>种类</TableHead>
-                <TableHead>Stage</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <div className="h-10 w-10 rounded bg-gray-100 overflow-hidden">
-                        {getPrimaryImageUrl(product) ? (
-                          <img
-                            src={getPrimaryImageUrl(product)!}
-                            alt={product.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-gray-300">
-                            <Eye className="h-4 w-4" />
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.code}</TableCell>
-                    <TableCell>
-                      {product.sex === 'male' ? '公' : product.sex === 'female' ? '母' : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {seriesList.find(s => s.id === product.seriesId)?.name || '-'}
-                    </TableCell>
-                    <TableCell>{product.stage || '-'}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="text-xs">
-                        {product.status || 'draft'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewProduct(product)}
-                          className="text-gray-600 hover:text-gray-900"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditProduct(product)}
-                          className="text-gray-600 hover:text-gray-900"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    没有找到符合条件的产品
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="border-t px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-gray-600">共 {totalProducts} 条</div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">每页</span>
-            <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
-              <SelectTrigger className="w-20 h-8 bg-white border-gray-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {totalPages > 1 && <PaginationInfo currentPage={currentPage} totalPages={totalPages} />}
-        </div>
-        {totalPages > 1 && (
-          <div className="pb-6">
-            <Pagination>
-              <PaginationContent>
-                {currentPage > 1 && (
-                  <PaginationItem>
-                    <PaginationPrevious onClick={() => handlePageChange(currentPage - 1)} />
-                  </PaginationItem>
-                )}
+      <ProductsTableDesktop
+        products={filteredProducts}
+        totalProducts={totalProducts}
+        seriesList={seriesList}
+        getPrimaryImageUrl={getPrimaryImageUrl}
+        onView={handleViewProduct}
+        onEdit={handleEditProduct}
+        onDelete={handleDeleteProduct}
+        onSort={handleSort}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={setItemsPerPage}
+        onPageChange={handlePageChange}
+      />
 
-                {getPageNumbers().map((number, idx) =>
-                  number === "ellipsis" ? (
-                    <PaginationItem key={`ellipsis-${idx}`}>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  ) : (
-                    <PaginationItem key={number}>
-                      <PaginationLink
-                        isActive={currentPage === number}
-                        onClick={() => handlePageChange(Number(number))}
-                      >
-                        {number}
-                      </PaginationLink>
-                    </PaginationItem>
-                  )
-                )}
-
-                {currentPage < totalPages && (
-                  <PaginationItem>
-                    <PaginationNext onClick={() => handlePageChange(currentPage + 1)} />
-                  </PaginationItem>
-                )}
-
-                {currentPage < totalPages && totalPages > 3 && (
-                  <PaginationItem>
-                    <PaginationLast onClick={() => handlePageChange(totalPages)} />
-                  </PaginationItem>
-                )}
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
-      </div>
-
-      {/* Mobile Card View */}
-      <div className="block md:hidden space-y-3">
-        {filteredProducts.length > 0 ? (
-          filteredProducts.map((product) => (
-            <Card key={product.id} className="overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex gap-3">
-                  {/* Product Image */}
-                  <div className="h-20 w-20 rounded bg-gray-100 overflow-hidden flex-shrink-0">
-                    {getPrimaryImageUrl(product) ? (
-                      <img
-                        src={getPrimaryImageUrl(product)!}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center text-gray-300">
-                        <Eye className="h-6 w-6" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Product Info */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate mb-1">{product.name}</h3>
-                    <p className="text-sm text-gray-600 mb-1">货号: {product.code}</p>
-                    <div className="flex gap-2 text-sm text-gray-600">
-                      <span>{product.sex === 'male' ? '公' : product.sex === 'female' ? '母' : '-'}</span>
-                      <span>•</span>
-                      <span>{seriesList.find(s => s.id === product.seriesId)?.name || '-'}</span>
-                    </div>
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="flex flex-col gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewProduct(product)}
-                      className="text-gray-600 hover:text-gray-900 h-8 w-8 p-0"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditProduct(product)}
-                      className="text-gray-600 hover:text-gray-900 h-8 w-8 p-0"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <Card>
-            <CardContent className="p-8 text-center text-gray-600">
-              没有找到符合条件的产品
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Mobile Pagination */}
-        {totalPages > 1 && (
-          <div className="pt-4">
-            <Pagination>
-              <PaginationContent>
-                {currentPage > 1 && (
-                  <PaginationItem>
-                    <PaginationPrevious onClick={() => handlePageChange(currentPage - 1)} />
-                  </PaginationItem>
-                )}
-
-                {getPageNumbers().map((number, idx) =>
-                  number === "ellipsis" ? (
-                    <PaginationItem key={`ellipsis-${idx}`}>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  ) : (
-                    <PaginationItem key={number}>
-                      <PaginationLink
-                        isActive={currentPage === number}
-                        onClick={() => handlePageChange(Number(number))}
-                      >
-                        {number}
-                      </PaginationLink>
-                    </PaginationItem>
-                  )
-                )}
-
-                {currentPage < totalPages && (
-                  <PaginationItem>
-                    <PaginationNext onClick={() => handlePageChange(currentPage + 1)} />
-                  </PaginationItem>
-                )}
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
-      </div>
+      <ProductsListMobile
+        products={filteredProducts}
+        seriesList={seriesList}
+        getPrimaryImageUrl={getPrimaryImageUrl}
+        onView={handleViewProduct}
+        onEdit={handleEditProduct}
+        onDelete={handleDeleteProduct}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
 
       {/* Product Detail/Edit Sheet */}
       <Sheet open={isProductDetailOpen} onOpenChange={setIsProductDetailOpen}>
