@@ -246,11 +246,12 @@ const SeriesDescriptionCard: React.FC<{ seriesName: string; seriesIntroItems: st
   );
 };
 
-const ParentLinkRow: React.FC<{
+const ParentPill: React.FC<{
   label: string;
+  variant: 'father' | 'mother';
   code?: string | null;
   query: UseQueryResult<BreederSummary, Error>;
-}> = ({ label, code, query }) => {
+}> = ({ label, variant, code, query }) => {
   const trimmedCode = (code || '').trim();
   const hasCode = !!trimmedCode;
 
@@ -273,34 +274,36 @@ const ParentLinkRow: React.FC<{
     }
   }
 
-  const baseClass =
-    'group flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition sm:px-5';
-  const disabledClass = 'cursor-not-allowed text-neutral-500';
-  const enabledClass = 'text-neutral-900 hover:bg-neutral-50';
+  const pillBase =
+    'inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2';
 
-  const content = (
+  const enabledColors =
+    variant === 'father'
+      ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-300'
+      : 'bg-pink-500 text-white hover:bg-pink-600 focus:ring-pink-300';
+
+  const disabledColors = 'cursor-not-allowed bg-neutral-200 text-neutral-500';
+
+  const text = (
     <>
-      <div className="text-sm font-medium text-neutral-600">{label}</div>
-      <div className="min-w-0 text-right">
-        <div className={`truncate text-sm font-semibold ${isClickable ? 'text-blue-700 group-hover:underline' : ''}`}>
-          {primaryText}
-        </div>
-        {secondaryText ? <div className="truncate text-xs text-neutral-500">{secondaryText}</div> : null}
-      </div>
+      <span className="shrink-0 opacity-90">{label}</span>
+      <span className="max-w-[12rem] truncate sm:max-w-[14rem]">{primaryText}</span>
     </>
   );
 
+  const title = secondaryText ? `${label} ${primaryText} - ${secondaryText}` : `${label} ${primaryText}`;
+
   if (!isClickable) {
     return (
-      <button type="button" disabled className={`${baseClass} ${disabledClass}`}>
-        {content}
+      <button type="button" disabled title={title} className={`${pillBase} ${disabledColors}`}>
+        {text}
       </button>
     );
   }
 
   return (
-    <Link to={href} className={`${baseClass} ${enabledClass}`}>
-      {content}
+    <Link to={href} title={title} className={`${pillBase} ${enabledColors}`}>
+      {text}
     </Link>
   );
 };
@@ -466,9 +469,9 @@ const BreederDetail: React.FC = () => {
                     ) : null}
                   </div>
 
-                  <div className="mt-4 overflow-hidden rounded-2xl border border-neutral-200/70 bg-neutral-50/40 divide-y divide-neutral-200/70">
-                    <ParentLinkRow label="父本" code={breederQ.data.sireCode} query={sireBreederQ} />
-                    <ParentLinkRow label="母本" code={breederQ.data.damCode} query={damBreederQ} />
+                  <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200/70 bg-neutral-50/40 p-3 sm:p-4">
+                    <ParentPill label="父本" variant="father" code={breederQ.data.sireCode} query={sireBreederQ} />
+                    <ParentPill label="母本" variant="mother" code={breederQ.data.damCode} query={damBreederQ} />
                   </div>
 
                   {breederQ.data.description ? (
