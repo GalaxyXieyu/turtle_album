@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import type { Product } from "@/types/products";
+import { normalizeStageValue, normalizeStatusValue } from "@/constants/filterOptions";
 
 import { ProductFormFields } from "./ProductFormFields";
 import {
@@ -38,8 +39,8 @@ export function ProductEditForm({ product, onSubmit, onCancel, isSaving, images 
       description: product.description,
       inStock: product.inStock,
       popularityScore: product.popularityScore,
-      stage: product.stage || "hatchling",
-      status: product.status || "active",
+      stage: normalizeStageValue(product.stage),
+      status: normalizeStatusValue(product.status),
       isFeatured: product.isFeatured,
     });
   }, [form, product]);

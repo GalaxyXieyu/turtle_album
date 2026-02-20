@@ -12,7 +12,7 @@ export const productFormSchema = z.object({
   popularityScore: z.coerce.number().min(0).max(100).default(0),
   isFeatured: z.boolean().default(false),
   stage: z.string().default("hatchling"),
-  status: z.enum(["draft", "active", "reserved", "sold"]).default("active"),
+  status: z.enum(["active", "reserved", "sold"]).default("active"),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

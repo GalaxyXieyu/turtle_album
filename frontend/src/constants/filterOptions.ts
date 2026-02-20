@@ -4,27 +4,48 @@ export const TURTLE_STAGES = [
   { value: "hatchling", label: "幼体" },
   { value: "juvenile", label: "亚成体" },
   { value: "adult", label: "成体" },
-  { value: "breeding", label: "繁育中" },
-  { value: "unknown", label: "未知" }
+  { value: "breeding", label: "繁育中" }
 ];
 
 // 产品状态选项
 export const PRODUCT_STATUSES = [
-  { value: "draft", label: "草稿" },
   { value: "active", label: "在售" },
   { value: "reserved", label: "已预订" },
   { value: "sold", label: "已售出" }
 ];
 
+const LEGACY_STAGE_VALUE_MAP: Record<string, string> = {
+  unknown: "hatchling",
+};
+
+const LEGACY_STATUS_VALUE_MAP: Record<string, string> = {
+  draft: "active",
+};
+
+// 兼容历史值：不再展示 unknown/draft，但编辑旧数据时自动归一化到可选值。
+export const normalizeStageValue = (stage?: string | null): string => {
+  if (!stage) return "hatchling";
+  const normalized = LEGACY_STAGE_VALUE_MAP[stage] || stage;
+  return TURTLE_STAGES.some((item) => item.value === normalized) ? normalized : "hatchling";
+};
+
+export const normalizeStatusValue = (status?: string | null): string => {
+  if (!status) return "active";
+  const normalized = LEGACY_STATUS_VALUE_MAP[status] || status;
+  return PRODUCT_STATUSES.some((item) => item.value === normalized) ? normalized : "active";
+};
+
 // 获取阶段的中文标签
 export const getStageLabel = (stage: string): string => {
-  const found = TURTLE_STAGES.find(s => s.value === stage);
+  const normalized = normalizeStageValue(stage);
+  const found = TURTLE_STAGES.find(s => s.value === normalized);
   return found ? found.label : stage;
 };
 
 // 获取状态的中文标签
 export const getStatusLabel = (status: string): string => {
-  const found = PRODUCT_STATUSES.find(s => s.value === status);
+  const normalized = normalizeStatusValue(status);
+  const found = PRODUCT_STATUSES.find(s => s.value === normalized);
   return found ? found.label : status;
 };
 
