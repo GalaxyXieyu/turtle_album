@@ -24,13 +24,14 @@ interface SeriesIntroCardProps {
 }
 
 const SeriesIntroCard: React.FC<SeriesIntroCardProps> = ({ seriesId, seriesName, seriesDescription, counts, breeders }) => {
-  const [isManuallyCollapsed, setIsManuallyCollapsed] = React.useState(false);
+  // Default-collapsed to keep scrolling smooth on mobile; user can expand via chevron.
+  const [isManuallyCollapsed, setIsManuallyCollapsed] = React.useState(true);
   const [hasManuallyInteracted, setHasManuallyInteracted] = React.useState(false);
   const [isScrollCollapsed, setIsScrollCollapsed] = React.useState(false);
 
   React.useEffect(() => {
-    // Reset intro interaction state when switching series.
-    setIsManuallyCollapsed(false);
+    // Keep intro collapsed when switching series (avoid auto-expanding on load).
+    setIsManuallyCollapsed(true);
     setHasManuallyInteracted(false);
   }, [seriesId]);
 

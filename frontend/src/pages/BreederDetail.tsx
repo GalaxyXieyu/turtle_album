@@ -46,7 +46,26 @@ const BreederCarousel: React.FC<BreederCarouselProps> = ({ mainImage, breederCod
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSeriesIntro]);
 
+  // Optional swipe gesture (wide trigger area). Buttons remain the primary affordance.
+  const touchStartX = React.useRef<number | null>(null);
 
+  const handleTouchStart: React.TouchEventHandler<HTMLDivElement> = (e) => {
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+  };
+
+  const handleTouchEnd: React.TouchEventHandler<HTMLDivElement> = (e) => {
+    if (!hasSeriesIntro) return;
+    const startX = touchStartX.current;
+    touchStartX.current = null;
+    const endX = e.changedTouches[0]?.clientX ?? null;
+    if (startX == null || endX == null) return;
+
+    const delta = endX - startX;
+    const threshold = 55;
+
+    if (delta > threshold) setCurrentSlide(0);
+    if (delta < -threshold) setCurrentSlide(1);
+  };
 
   const effectiveSlide = hasSeriesIntro ? currentSlide : 0;
 
@@ -54,6 +73,8 @@ const BreederCarousel: React.FC<BreederCarouselProps> = ({ mainImage, breederCod
     <div className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-[0_14px_38px_rgba(0,0,0,0.14)]">
       <div
         className="relative aspect-[4/5] bg-neutral-100"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         <Link
           to="/"
@@ -97,25 +118,28 @@ const BreederCarousel: React.FC<BreederCarouselProps> = ({ mainImage, breederCod
           {/* Slide 0: Series intro (negative screen) */}
           {hasSeriesIntro ? (
             <div className="h-full w-full shrink-0 overflow-y-auto bg-gradient-to-br from-neutral-800 via-neutral-700 to-neutral-600 p-5">
-              <div className="flex h-full flex-col">
+              {/* Add top padding so content doesn't sit under the absolute back/indicator controls on mobile. */}
+              <div className="flex h-full flex-col pt-14 pr-10">
                 <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-white/70">
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                   <span>系列介绍</span>
                 </div>
-                <div className="mt-2 flex items-center justify-between">
-  <div className="text-xl font-bold text-white sm:text-2xl">{activeSeries?.name}</div>
-  <button
-    type="button"
-    onClick={() => setCurrentSlide(1)}
-    className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white"
-  >
-    返回图片
-  </button>
-</div>
+
+                <div className="mt-2 flex items-start justify-between gap-3">
+                  <div className="text-xl font-bold text-white sm:text-2xl">{activeSeries?.name}</div>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentSlide(1)}
+                    className="shrink-0 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white"
+                  >
+                    返回图片
+                  </button>
+                </div>
+
                 <div className="mt-4 flex-1 whitespace-pre-wrap text-sm leading-relaxed text-white/90">
-                  {activeSeries?.description || ""}
+                  {activeSeries?.description || ''}
                 </div>
               </div>
             </div>
@@ -129,7 +153,7 @@ const BreederCarousel: React.FC<BreederCarouselProps> = ({ mainImage, breederCod
               <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">暂无图片</div>
             )}
             <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/35 to-transparent" />
-<div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
+            <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center gap-2">
               {hasSeriesIntro ? (
                 <button
                   type="button"
