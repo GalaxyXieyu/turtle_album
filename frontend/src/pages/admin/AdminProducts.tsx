@@ -315,6 +315,8 @@ const AdminProducts = () => {
         stage: values.stage,
         status: values.status,
         series_id: values.seriesId?.trim() || null,
+        sire_code: values.sireCode?.trim() || null,
+        dam_code: values.damCode?.trim() || null,
         has_sample: values.hasSample,
         cost_price: 0, // Default value, can be updated later
         price: 0, // Default value, can be updated later
@@ -369,6 +371,8 @@ const AdminProducts = () => {
       stage: values.stage,
       status: values.status,
       series_id: values.seriesId?.trim() || null,
+      sire_code: values.sireCode?.trim() || null,
+      dam_code: values.damCode?.trim() || null,
       has_sample: values.hasSample,
       in_stock: values.inStock,
       popularity_score: values.popularityScore,

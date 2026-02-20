@@ -36,6 +36,8 @@ export function ProductEditForm({ product, onSubmit, onCancel, isSaving, images 
       name: product.name,
       code: product.code,
       seriesId: product.seriesId || "",
+      sireCode: product.sireCode || "",
+      damCode: product.damCode || "",
       description: product.description,
       inStock: product.inStock,
       popularityScore: product.popularityScore,

@@ -5,6 +5,9 @@ export const productFormSchema = z.object({
   code: z.string().min(1, "货号不能为空"),
   // Backend write key is series_id; frontend keeps seriesId then maps before submit.
   seriesId: z.string().optional().default(""),
+  // Backend write keys are sire_code/dam_code; frontend keeps camelCase then maps before submit.
+  sireCode: z.string().optional().default(""),
+  damCode: z.string().optional().default(""),
   // Create flow keeps description optional; edit flow can still fill it.
   description: z.string().optional().default(""),
   hasSample: z.boolean().default(false),
@@ -21,6 +24,8 @@ export const productFormDefaultValues: ProductFormValues = {
   name: "",
   code: "",
   seriesId: "",
+  sireCode: "",
+  damCode: "",
   description: "",
   hasSample: false,
   inStock: true,

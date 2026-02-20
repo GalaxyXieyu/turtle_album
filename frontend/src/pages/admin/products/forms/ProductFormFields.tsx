@@ -76,6 +76,34 @@ export function ProductFormFields({ control }: Props) {
 
         <FormField
           control={control}
+          name="sireCode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>父本编号</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="输入父本编号（可选）" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="damCode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>母本编号</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="输入母本编号（可选）" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
           name="stage"
           render={({ field }) => (
             <FormItem>
