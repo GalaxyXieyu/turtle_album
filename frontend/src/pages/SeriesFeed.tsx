@@ -56,6 +56,11 @@ const SeriesIntroCard: React.FC<SeriesIntroCardProps> = ({ seriesId, seriesName,
     };
   }, [hasManuallyInteracted]);
 
+  React.useEffect(() => {
+    // Once the user has interacted, never keep the card hidden due to prior scroll state.
+    if (hasManuallyInteracted) setIsScrollCollapsed(false);
+  }, [hasManuallyInteracted]);
+
   const desc = (seriesDescription || '').trim();
   if (!desc) return null;
 
@@ -106,6 +111,8 @@ const SeriesIntroCard: React.FC<SeriesIntroCardProps> = ({ seriesId, seriesName,
               type="button"
               onClick={() => {
                 setHasManuallyInteracted(true);
+                // If the card was auto-hidden by scroll, bring it back when the user explicitly toggles.
+                setIsScrollCollapsed(false);
                 setIsManuallyCollapsed((prev) => !prev);
               }}
               className="rounded-full p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white"
