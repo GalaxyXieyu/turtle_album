@@ -155,7 +155,6 @@ Admin Component → useAuth() → Check Authentication
 ### Fetching Products (Public)
 ```typescript
 const { data, isLoading, error } = useProducts({
-  filters: { tubeTypes: ['口红管'] },
   sort: 'newest',
   page: 1,
   limit: 12

@@ -103,13 +103,7 @@ async def update_product(
     # Update fields
     update_data = product_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        if field == "dimensions" and value:
-            setattr(product, field, value.model_dump() if hasattr(value, 'model_dump') else value)
-        elif field == "functional_designs" and value:
-            # Convert list to comma-separated string
-            setattr(product, field, ','.join(value) if isinstance(value, list) else value)
-        else:
-            setattr(product, field, value)
+        setattr(product, field, value)
 
     db.commit()
     db.refresh(product)

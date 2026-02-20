@@ -136,14 +136,6 @@ class DataQualityAnalyzer:
         if product.get("has_sample"):
             score += 0.25
 
-        if product.get("box_dimensions") and product.get("box_quantity"):
-            score += 0.25
-        else:
-            if not product.get("box_dimensions"):
-                missing_fields.append("box_dimensions")
-            if not product.get("box_quantity"):
-                missing_fields.append("box_quantity")
-
         if score >= 9:
             level = "excellent"
         elif score >= 7:
@@ -174,12 +166,8 @@ class ExcelExporter:
 
         # 定义列
         headers = [
-            "货号", "产品名称", "产品描述", "形状", "材质",
-            "出厂价格", "成本价", "重量(kg)", "长度(cm)", "宽度(cm)", "高度(cm)",
-            "容量最小(ml)", "容量最大(ml)", "分隔数量",
-            "产品类型", "管型", "盒型", "工艺类型", "功能设计",
-            "库存状态", "有样品", "是否精选", "热度评分",
-            "纸箱尺寸", "装箱数量",
+            "货号", "产品名称", "产品描述",
+            "出厂价格", "成本价", "库存状态", "有样品", "是否精选", "热度评分",
             "系列编号", "系列名称",
             "性别", "后代单价", "父本编号", "母本编号",
             "图片数量", "主图URL",
@@ -196,8 +184,6 @@ class ExcelExporter:
         # 写入数据
         for row_idx, product in enumerate(products, 2):
             analysis = DataQualityAnalyzer.analyze_product(product)
-            dims = product.get("dimensions") or {}
-            capacity = dims.get("capacity") or {}
             images = product.get("images") or []
             main_image = next((img for img in images if img.get("type") == "main"), None)
 
@@ -207,28 +193,12 @@ class ExcelExporter:
                 product.get("code", ""),
                 product.get("name", ""),
                 product.get("description", ""),
-                product.get("shape", ""),
-                product.get("material", ""),
                 product.get("factory_price", 0),
                 product.get("cost_price", 0),
-                dims.get("weight", ""),
-                dims.get("length", ""),
-                dims.get("width", ""),
-                dims.get("height", ""),
-                capacity.get("min", ""),
-                capacity.get("max", ""),
-                dims.get("compartments", ""),
-                product.get("product_type", ""),
-                product.get("tube_type", ""),
-                product.get("box_type", ""),
-                product.get("process_type", ""),
-                product.get("functional_designs", ""),
                 "有货" if product.get("in_stock") else "缺货",
                 "是" if product.get("has_sample") else "否",
                 "是" if product.get("is_featured") else "否",
                 product.get("popularity_score", 0),
-                product.get("box_dimensions", ""),
-                product.get("box_quantity", ""),
                 product.get("series_id", ""),
                 series_name,
                 product.get("sex", ""),

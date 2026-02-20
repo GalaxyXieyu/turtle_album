@@ -15,7 +15,7 @@ GET {{host}}/api/products?search=tube
 Authorization: Bearer {{auth_token}}
 
 ### Filter Products
-GET {{host}}/api/products?tube_types=口红管&materials=ABS
+GET {{host}}/api/products?search=tube
 Authorization: Bearer {{auth_token}}
 
 ### Get Filter Options

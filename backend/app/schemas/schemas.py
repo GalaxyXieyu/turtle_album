@@ -83,8 +83,6 @@ class ProductUpdate(BaseModel):
     cost_price: Optional[float] = None
     factory_price: Optional[float] = None
     has_sample: Optional[bool] = None
-    box_dimensions: Optional[str] = None
-    box_quantity: Optional[int] = None
     in_stock: Optional[bool] = None
     popularity_score: Optional[int] = None
     is_featured: Optional[bool] = None
@@ -99,14 +97,6 @@ class ProductResponse(ProductBase):
         from_attributes = True
 
 class ProductFilters(BaseModel):
-    tube_types: Optional[List[str]] = None
-    box_types: Optional[List[str]] = None
-    process_types: Optional[List[str]] = None
-    functional_designs: Optional[List[str]] = None
-    shapes: Optional[List[str]] = None
-    materials: Optional[List[str]] = None
-    capacity_range: Optional[Dict[str, float]] = None  # {"min": float, "max": float}
-    compartment_range: Optional[Dict[str, int]] = None  # {"min": int, "max": int}
     search_text: Optional[str] = None
 
 class SortOption(str, Enum):
@@ -122,13 +112,6 @@ class ProductListResponse(BaseModel):
     total_pages: int
 
 class FilterOptionsResponse(BaseModel):
-    tube_types: List[str]
-    box_types: List[str]
-    process_types: List[str]
-    functional_designs: List[str]
-    shapes: List[str]
-    materials: List[str]
-    capacity_range: Dict[str, float]
     price_range: Dict[str, float]
 
 # Authentication schemas

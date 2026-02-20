@@ -1,5 +1,5 @@
 import apiClient, { ApiResponse, handleApiError, createImageUrl } from '@/lib/api';
-import { Product, FilterOptions, FilterOptionsResponse, SortOption, Material, Shape, TubeType, BoxType, FunctionalDesign } from '@/types/products';
+import { Product, FilterOptions, FilterOptionsResponse, SortOption } from '@/types/products';
 
 // Backend API data structure (snake_case)
 interface BackendProductCreate {
@@ -8,27 +8,9 @@ interface BackendProductCreate {
   description?: string;
   stage?: string;
   status?: 'draft' | 'active' | 'reserved' | 'sold';
-  tube_type?: TubeType;
-  box_type?: BoxType;
-  functional_designs: FunctionalDesign[];
-  shape: Shape;
-  material: Material;
-  dimensions: {
-    weight?: number;
-    length?: number;
-    width?: number;
-    height?: number;
-    capacity?: {
-      min: number;
-      max: number;
-    };
-    compartments?: number;
-  };
   cost_price: number;
   factory_price: number;
   has_sample: boolean;
-  box_dimensions?: string;
-  box_quantity?: number;
   in_stock: boolean;
   popularity_score: number;
   images: Array<{
@@ -63,12 +45,6 @@ export const productService = {
     try {
       const queryParams: Record<string, unknown> = { ...params };
       if (params?.filters) {
-        const { tubeTypes, boxTypes, functionalDesigns, shapes, materials } = params.filters;
-        if (tubeTypes?.length) queryParams.tube_types = tubeTypes.join(",");
-        if (boxTypes?.length) queryParams.box_types = boxTypes.join(",");
-        if (functionalDesigns?.length) queryParams.functional_designs = functionalDesigns.join(",");
-        if (shapes?.length) queryParams.shapes = shapes.join(",");
-        if (materials?.length) queryParams.materials = materials.join(",");
         delete queryParams.filters;
       }
 

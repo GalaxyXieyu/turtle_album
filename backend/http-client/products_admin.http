@@ -12,20 +12,7 @@ Content-Type: application/json
   "name": "Test Lipstick Tube",
   "code": "TEST-HTTP-001",
   "description": "Created via HTTP Client",
-  "product_type": "tube",
-  "tube_type": "口红管",
-  "shape": "圆形",
-  "material": "ABS",
   "factory_price": 1.5,
-  "dimensions": {
-    "height": 100,
-    "width": 20,
-    "capacity": {
-      "min": 3,
-      "max": 5
-    }
-  },
-  "functional_designs": ["磁吸"],
   "in_stock": true
 }
 

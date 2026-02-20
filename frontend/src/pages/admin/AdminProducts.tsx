@@ -3,7 +3,7 @@ import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Product, TubeType, BoxType, FunctionalDesign, Shape, Material, ProcessType, ProductImage } from "@/types/products";
+import { Product, ProductImage } from "@/types/products";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, useUploadProductImages, PRODUCT_QUERY_KEYS } from "@/hooks/useProducts";
 import { useQueryClient } from "@tanstack/react-query";
 import { adminProductService } from "@/services/productService";
@@ -98,7 +98,10 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
-import { ProductImportDialog } from "@/components/admin/ProductImportDialog";
+import { ProductsToolbar } from "./products/ProductsToolbar";
+import { TurtleFilters } from "./products/TurtleFilters";
+import { ProductsTableDesktop } from "./products/ProductsTableDesktop";
+import { ProductsListMobile } from "./products/ProductsListMobile";
 
 // Image upload interface
 interface ProductImageUpload {
@@ -106,16 +109,6 @@ interface ProductImageUpload {
   preview: string;
   id: string;
   type?: 'main' | 'gallery' | 'dimensions' | 'detail';
-}
-
-// API response interface for filter options
-interface FilterOptions {
-  tubeTypes: string[];
-  boxTypes: string[];
-  processTypes: string[];
-  functionalDesigns: string[];
-  shapes: string[];
-  materials: string[];
 }
 
 // Form validation schema
@@ -146,7 +139,6 @@ const AdminProducts = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFunctionalDesigns, setSelectedFunctionalDesigns] = useState<FunctionalDesign[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -159,17 +151,6 @@ const AdminProducts = () => {
   const [hasImageOrderChanged, setHasImageOrderChanged] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-
-  // State for dynamic filter options
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-    tubeTypes: [],
-    boxTypes: [],
-    processTypes: [],
-    functionalDesigns: [],
-    shapes: [],
-    materials: []
-  });
-  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
 
   // API hooks
   const { data: apiProductsData, isLoading: productsLoading, error: productsError } = useProducts({
@@ -212,69 +193,6 @@ const AdminProducts = () => {
     }
   }, [isAuthenticated]);
 
-  // Fetch filter options from API
-  const normalizeFilterValues = (values: unknown): string[] => {
-    if (Array.isArray(values)) {
-      return values.filter((item): item is string => typeof item === "string" && item.trim() !== "");
-    }
-    if (values && typeof values === "object") {
-      return Object.values(values as Record<string, unknown>)
-        .flat()
-        .filter((item): item is string => typeof item === "string" && item.trim() !== "");
-    }
-    return [];
-  };
-
-  useEffect(() => {
-    const fetchFilterOptions = async () => {
-      try {
-        setIsLoadingOptions(true);
-        const response = await fetch('/api/products/filter-options');
-        if (response.ok) {
-          const data = await response.json();
-          // Convert API response from snake_case to camelCase
-          const apiData = data.data;
-          setFilterOptions({
-            tubeTypes: normalizeFilterValues(apiData.tubeTypes ?? apiData.tube_types).sort(),
-            boxTypes: normalizeFilterValues(apiData.boxTypes ?? apiData.box_types).sort(),
-            processTypes: normalizeFilterValues(apiData.processTypes ?? apiData.process_types).sort(),
-            functionalDesigns: normalizeFilterValues(apiData.functionalDesigns ?? apiData.functional_designs).sort(),
-            shapes: normalizeFilterValues(apiData.shapes).sort(),
-            materials: normalizeFilterValues(apiData.materials).sort()
-          });
-        } else {
-          console.error('Failed to fetch filter options');
-          // Fall back to hardcoded options if API fails
-          setFilterOptions({
-            tubeTypes: ['口红管', '唇釉管', '固体棒', '睫毛膏瓶', '眼线液瓶', '唇膜瓶', '粉底膏霜瓶', '发际线包材'],
-            boxTypes: ['腮红盒', '粉饼高光盒', '散粉盒', '气垫盒'],
-            processTypes: ['注塑', '吹瓶'],
-            functionalDesigns: ['磁吸', '卡扣', '双头', '双层', '带镜子', '带刷位', '贴片', '多格'],
-            shapes: ['圆形', '正方形', '长方形', '椭圆形', '波浪纹', '迷你', '儿童卡通', '不规则'],
-            materials: ['AS', 'PETG', 'PS', 'PP']
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching filter options:', error);
-        // Fall back to hardcoded options
-        setFilterOptions({
-          tubeTypes: ['口红管', '唇釉管', '固体棒', '睫毛膏瓶', '眼线液瓶', '唇膜瓶', '粉底膏霜瓶', '发际线包材'],
-          boxTypes: ['腮红盒', '粉饼高光盒', '散粉盒', '气垫盒'],
-          processTypes: ['注塑', '吹瓶'],
-          functionalDesigns: ['磁吸', '卡扣', '双头', '双层', '带镜子', '带刷位', '贴片', '多格'],
-          shapes: ['圆形', '正方形', '长方形', '椭圆形', '波浪纹', '迷你', '儿童卡通', '不规则'],
-          materials: ['AS', 'PETG', 'PS', 'PP']
-        });
-      } finally {
-        setIsLoadingOptions(false);
-      }
-    };
-
-    if (isAuthenticated) {
-      fetchFilterOptions();
-    }
-  }, [isAuthenticated]);
-
   // Update filtered products when products data changes
   useEffect(() => {
     setFilteredProducts(products);
@@ -295,10 +213,6 @@ const AdminProducts = () => {
     setCurrentPage(1);
   }, [
     searchQuery,
-    listFilters.tubeType,
-    listFilters.boxType,
-    listFilters.material,
-    listFilters.shape,
     itemsPerPage,
   ]);
 
@@ -716,11 +630,6 @@ const AdminProducts = () => {
     setSelectedProduct(product);
     setIsEditMode(true);
     setIsProductDetailOpen(true);
-    // Handle functionalDesigns being either array or string
-    const designs = Array.isArray(product.functionalDesigns) 
-      ? product.functionalDesigns 
-      : product.functionalDesigns ? [product.functionalDesigns] : [];
-    setSelectedFunctionalDesigns(designs);
 
     editForm.setValue('isFeatured', product.isFeatured);
 
@@ -742,29 +651,11 @@ const AdminProducts = () => {
       name: "",
       code: "",
       description: "",
-      material: "",
-      shape: "",
-      tubeType: "",
-      boxType: "",
-      processType: "",
       hasSample: false,
-      boxDimensions: "",
-      boxQuantity: 0,
       inStock: true,
       popularityScore: 0,
       stage: "unknown",
-      status: "draft",
-      dimensions: {
-        weight: 0,
-        length: 0,
-        width: 0,
-        height: 0,
-        capacity: {
-          min: 0,
-          max: 0
-        },
-        compartments: 1
-      }
+      status: "draft"
     }
   });
 
@@ -774,29 +665,11 @@ const AdminProducts = () => {
       name: "",
       code: "",
       description: "",
-      material: "",
-      shape: "",
-      tubeType: "",
-      boxType: "",
-      processType: "",
       hasSample: false,
-      boxDimensions: "",
-      boxQuantity: 0,
       inStock: true,
       popularityScore: 0,
       stage: "unknown",
-      status: "draft",
-      dimensions: {
-        weight: 0,
-        length: 0,
-        width: 0,
-        height: 0,
-        capacity: {
-          min: 0,
-          max: 0
-        },
-        compartments: 1
-      }
+      status: "draft"
     }
   });
 
@@ -807,40 +680,15 @@ const AdminProducts = () => {
         name: selectedProduct.name,
         code: selectedProduct.code,
         description: selectedProduct.description,
-        material: selectedProduct.material,
-        shape: selectedProduct.shape,
-        tubeType: selectedProduct.tubeType || "",
-        boxType: selectedProduct.boxType || "",
-        processType: selectedProduct.processType || "",
         hasSample: false,
-        boxDimensions: "",
-        boxQuantity: 0,
         inStock: selectedProduct.inStock,
         popularityScore: selectedProduct.popularityScore,
         stage: selectedProduct.stage || "unknown",
-        status: selectedProduct.status || "draft",
-        dimensions: {
-          weight: selectedProduct.dimensions?.weight || 0,
-          length: selectedProduct.dimensions?.length || 0,
-          width: selectedProduct.dimensions?.width || 0,
-          height: selectedProduct.dimensions?.height || 0,
-          capacity: {
-            min: selectedProduct.dimensions?.capacity?.min || 0,
-            max: selectedProduct.dimensions?.capacity?.max || 0
-          },
-          compartments: selectedProduct.dimensions?.compartments || 1
-        }
+        status: selectedProduct.status || "draft"
       });
-      // Handle functionalDesigns being either array or string
-      const designs = Array.isArray(selectedProduct.functionalDesigns) 
-        ? selectedProduct.functionalDesigns 
-        : selectedProduct.functionalDesigns ? [selectedProduct.functionalDesigns] : [];
-      setSelectedFunctionalDesigns(designs);
 
       // Initialize images
       initImagesFromProduct(selectedProduct);
-    } else {
-      setSelectedFunctionalDesigns([]);
     }
   }, [selectedProduct, editForm, isEditMode]);
 
@@ -862,33 +710,13 @@ const AdminProducts = () => {
         name: values.name,
         code: values.code,
         description: values.description || "",
-        material: values.material as Material,
-        shape: values.shape as Shape,
         stage: values.stage,
         status: values.status,
-        tube_type: values.tubeType ? values.tubeType as TubeType : undefined,
-        box_type: values.boxType ? values.boxType as BoxType : undefined,
-        process_type: values.processType ? values.processType as ProcessType : undefined,
-        functional_designs: selectedFunctionalDesigns,
-        dimensions: {
-          weight: values.dimensions?.weight ? parseFloat(values.dimensions.weight.toString()) : undefined,
-          capacity: values.dimensions?.capacity?.min || values.dimensions?.capacity?.max ? {
-            min: values.dimensions?.capacity?.min ? parseFloat(values.dimensions.capacity.min.toString()) : 0,
-            max: values.dimensions?.capacity?.max ? parseFloat(values.dimensions.capacity.max.toString()) : 0
-          } : undefined,
-          length: values.dimensions?.length ? parseFloat(values.dimensions.length.toString()) : undefined,
-          width: values.dimensions?.width ? parseFloat(values.dimensions.width.toString()) : undefined,
-          height: values.dimensions?.height ? parseFloat(values.dimensions.height.toString()) : undefined,
-          compartments: values.dimensions?.compartments ? parseInt(values.dimensions.compartments.toString()) : undefined
-        },
         has_sample: values.hasSample,
-        box_dimensions: values.boxDimensions || undefined,
-        box_quantity: values.boxQuantity ?? undefined,
         cost_price: 0, // Default value, can be updated later
         factory_price: 0, // Default value, can be updated later
         in_stock: values.inStock,
         popularity_score: values.popularityScore,
-        is_featured: values.isFeatured,
         images: [] // Create product without images first
       };
 
@@ -914,7 +742,6 @@ const AdminProducts = () => {
 
           // After creation, jump into edit/detail view so images can be managed (set main/delete/reorder).
           setIsCreateDialogOpen(false);
-          setSelectedFunctionalDesigns([]);
           createForm.reset();
 
           if (created?.id) {
@@ -937,29 +764,9 @@ const AdminProducts = () => {
       name: values.name,
       code: values.code,
       description: values.description || "",
-      material: values.material as Material,
-      shape: values.shape as Shape,
       stage: values.stage,
       status: values.status,
-      tube_type: values.tubeType ? values.tubeType as TubeType : undefined,
-      box_type: values.boxType ? values.boxType as BoxType : undefined,
-      process_type: values.processType ? values.processType as ProcessType : undefined,
-      functional_designs: selectedFunctionalDesigns,
-      dimensions: {
-        ...selectedProduct.dimensions,
-        weight: values.dimensions?.weight ? parseFloat(values.dimensions.weight.toString()) : undefined,
-        capacity: values.dimensions?.capacity?.min || values.dimensions?.capacity?.max ? {
-          min: values.dimensions?.capacity?.min ? parseFloat(values.dimensions.capacity.min.toString()) : 0,
-          max: values.dimensions?.capacity?.max ? parseFloat(values.dimensions.capacity.max.toString()) : 0
-        } : undefined,
-        length: values.dimensions?.length ? parseFloat(values.dimensions.length.toString()) : undefined,
-        width: values.dimensions?.width ? parseFloat(values.dimensions.width.toString()) : undefined,
-        height: values.dimensions?.height ? parseFloat(values.dimensions.height.toString()) : undefined,
-        compartments: values.dimensions?.compartments ? parseInt(values.dimensions.compartments.toString()) : undefined
-      },
       has_sample: values.hasSample,
-      box_dimensions: values.boxDimensions || undefined,
-      box_quantity: values.boxQuantity ?? undefined,
       in_stock: values.inStock,
       popularity_score: values.popularityScore,
       is_featured: values.isFeatured
@@ -985,14 +792,8 @@ const AdminProducts = () => {
     );
   };
 
-  const toggleFunctionalDesign = (design: FunctionalDesign) => {
-    setSelectedFunctionalDesigns(current => {
-      if (current.includes(design)) {
-        return current.filter(d => d !== design);
-      } else {
-        return [...current, design];
-      }
-    });
+  const toggleFunctionalDesign = (design: any) => {
+    // This function is no longer needed but keeping stub for now
   };
 
   // Prepare image gallery and upload section
@@ -1274,88 +1075,6 @@ const AdminProducts = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {selectedProduct.tubeType && (
-            <div>
-              <p className="text-sm font-medium text-gray-900">管型</p>
-              <p className="text-gray-600">{selectedProduct.tubeType}</p>
-            </div>
-          )}
-          {selectedProduct.boxType && (
-            <div>
-              <p className="text-sm font-medium text-gray-900">盒型</p>
-              <p className="text-gray-600">{selectedProduct.boxType}</p>
-            </div>
-          )}
-          <div>
-            <p className="text-sm font-medium text-gray-900">材质</p>
-            <p className="text-gray-600">{selectedProduct.material}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-900">形状</p>
-            <p className="text-gray-600">{selectedProduct.shape}</p>
-          </div>
-        </div>
-
-        <div>
-          <p className="text-sm font-medium text-gray-900 mb-1">功能设计</p>
-          <div className="flex flex-wrap gap-2">
-            {(() => {
-              // Handle functionalDesigns being either array or string
-              const designs = Array.isArray(selectedProduct.functionalDesigns) 
-                ? selectedProduct.functionalDesigns 
-                : selectedProduct.functionalDesigns ? [selectedProduct.functionalDesigns] : [];
-              
-              return designs.map((design, index) => (
-                <span
-                  key={index}
-                  className="px-2.5 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs"
-                >
-                  {design}
-                </span>
-              ));
-            })()}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          {selectedProduct.dimensions.weight && (
-            <div>
-              <p className="text-sm font-medium text-gray-900">重量</p>
-              <p className="text-gray-600">{selectedProduct.dimensions.weight}g</p>
-            </div>
-          )}
-          {selectedProduct.dimensions.capacity && (
-            <div>
-              <p className="text-sm font-medium text-gray-900">容量</p>
-              <p className="text-gray-600">
-                {selectedProduct.dimensions.capacity.min}-{selectedProduct.dimensions.capacity.max}ml
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          {selectedProduct.dimensions.length && (
-            <div>
-              <p className="text-sm font-medium text-gray-900">长度</p>
-              <p className="text-gray-600">{selectedProduct.dimensions.length}mm</p>
-            </div>
-          )}
-          {selectedProduct.dimensions.width && (
-            <div>
-              <p className="text-sm font-medium text-gray-900">宽度</p>
-              <p className="text-gray-600">{selectedProduct.dimensions.width}mm</p>
-            </div>
-          )}
-          {selectedProduct.dimensions.height && (
-            <div>
-              <p className="text-sm font-medium text-gray-900">高度</p>
-              <p className="text-gray-600">{selectedProduct.dimensions.height}mm</p>
-            </div>
-          )}
-        </div>
-
         <div className="flex justify-end gap-4 mt-8">
           <Button 
             variant="outline" 
@@ -1396,92 +1115,29 @@ const AdminProducts = () => {
     <AdminLayout title="产品管理">
       {/* Sticky Search and Actions Bar */}
       <div className="sticky top-0 z-10 bg-neutral-50 pb-4 mb-2">
-        <div className="mb-4 flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 h-4 w-4" />
-          <Input
-            placeholder="搜索产品..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-white border-gray-200"
-          />
-        </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <ProductImportDialog onSuccess={() => queryClient.invalidateQueries({ queryKey: PRODUCT_QUERY_KEYS.lists() })} />
-          <Button
-            className="bg-gray-900 hover:bg-gray-800 text-white flex-1 sm:flex-none"
-            onClick={() => {
-              resetImages();
-              setSelectedFunctionalDesigns([]);
-              setIsCreateDialogOpen(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            添加产品
-          </Button>
-        </div>
-      </div>
+        <ProductsToolbar
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          onImportSuccess={() => queryClient.invalidateQueries({ queryKey: PRODUCT_QUERY_KEYS.lists() })}
+          onCreateClick={() => {
+            resetImages();
+            setSelectedFunctionalDesigns([]);
+            setIsCreateDialogOpen(true);
+          }}
+        />
 
-      {/* Turtle Filters */}
-      <div className="mb-4 flex flex-col sm:flex-row gap-3">
-        <Select
-          value={listFilters.sex || "all"}
-          onValueChange={(value) => {
-            setListFilters(prev => ({
-              ...prev,
-              sex: value === "all" ? undefined : value
-            }));
+        <TurtleFilters
+          filters={listFilters}
+          seriesList={seriesList}
+          onChange={(next) => {
+            setListFilters(next);
             setCurrentPage(1);
           }}
-        >
-          <SelectTrigger className="w-full sm:w-[180px] bg-white border-gray-200">
-            <SelectValue placeholder="性别" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部性别</SelectItem>
-            <SelectItem value="male">公</SelectItem>
-            <SelectItem value="female">母</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={listFilters.series_id || "all"}
-          onValueChange={(value) => {
-            setListFilters(prev => ({
-              ...prev,
-              series_id: value === "all" ? undefined : value
-            }));
+          onClear={() => {
+            setListFilters({});
             setCurrentPage(1);
           }}
-        >
-          <SelectTrigger className="w-full sm:w-[200px] bg-white border-gray-200">
-            <SelectValue placeholder="种类" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部种类</SelectItem>
-            {seriesList.map((series) => (
-              <SelectItem key={series.id} value={series.id}>
-                {series.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {(listFilters.sex || listFilters.series_id) && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setListFilters({});
-              setCurrentPage(1);
-            }}
-            className="border-gray-200"
-          >
-            <X className="h-4 w-4 mr-1" />
-            清除筛选
-          </Button>
-        )}
-      </div>
+        />
       </div>
 
       {/* Desktop Table View */}
@@ -1865,161 +1521,6 @@ const AdminProducts = () => {
                           )}
                         />
 
-                        <FormField
-                          control={editForm.control}
-                          name="material"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>材质</FormLabel>
-                                <FormControl>
-                                <Combobox
-                                  options={filterOptions.materials}
-                                  value={field.value}
-                                  onValueChange={field.onChange}
-                                  placeholder="选择材质"
-                                  allowCustom={true}
-                                  onAddCustom={(newMaterial) => {
-                                    // 添加到本地选项中
-                                    setFilterOptions(prev => ({
-                                      ...prev,
-                                      materials: [...prev.materials, newMaterial].sort()
-                                    }));
-                                  }}
-                                />
-                                </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={editForm.control}
-                          name="shape"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>形状</FormLabel>
-                                <FormControl>
-                                <Combobox
-                                  options={filterOptions.shapes}
-                                  value={field.value}
-                                  onValueChange={field.onChange}
-                                  placeholder="选择形状"
-                                  allowCustom={true}
-                                  onAddCustom={(newShape) => {
-                                    setFilterOptions(prev => ({
-                                      ...prev,
-                                      shapes: [...prev.shapes, newShape].sort()
-                                    }));
-                                  }}
-                                />
-                                </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={editForm.control}
-                            name="tubeType"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>管型</FormLabel>
-                                  <FormControl>
-                                  <Combobox
-                                    options={["", ...filterOptions.tubeTypes]}
-                                    value={field.value || ""}
-                                    onValueChange={(value) => field.onChange(value === "" ? undefined : value)}
-                                    placeholder="选择管型（可选）"
-                                    allowCustom={true}
-                                    onAddCustom={(newTubeType) => {
-                                      setFilterOptions(prev => ({
-                                        ...prev,
-                                        tubeTypes: [...prev.tubeTypes, newTubeType].sort()
-                                      }));
-                                    }}
-                                  />
-                                  </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={editForm.control}
-                            name="boxType"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>盒型</FormLabel>
-                                  <FormControl>
-                                  <Combobox
-                                    options={["", ...filterOptions.boxTypes]}
-                                    value={field.value || ""}
-                                    onValueChange={(value) => field.onChange(value === "" ? undefined : value)}
-                                    placeholder="选择盒型（可选）"
-                                    allowCustom={true}
-                                    onAddCustom={(newBoxType) => {
-                                      setFilterOptions(prev => ({
-                                        ...prev,
-                                        boxTypes: [...prev.boxTypes, newBoxType].sort()
-                                      }));
-                                    }}
-                                  />
-                                  </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <FormField
-                          control={editForm.control}
-                          name="processType"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>工艺类型</FormLabel>
-                                <FormControl>
-                                <Combobox
-                                  options={["", ...filterOptions.processTypes]}
-                                  value={field.value || ""}
-                                  onValueChange={(value) => field.onChange(value === "" ? undefined : value)}
-                                  placeholder="选择工艺类型（可选）"
-                                  allowCustom={true}
-                                  onAddCustom={(newProcessType) => {
-                                    setFilterOptions(prev => ({
-                                      ...prev,
-                                      processTypes: [...prev.processTypes, newProcessType].sort()
-                                    }));
-                                  }}
-                                />
-                                </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormItem>
-                          <FormLabel>功能设计</FormLabel>
-                          <div className="flex flex-wrap gap-2">
-                            {(filterOptions.functionalDesigns || []).map((design) => (
-                              <div
-                                key={design}
-                                className={`px-3 py-1.5 rounded-full text-sm cursor-pointer transition-colors ${
-                                  selectedFunctionalDesigns.includes(design)
-                                    ? "bg-gray-900 text-white"
-                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                }`}
-                                onClick={() => toggleFunctionalDesign(design)}
-                              >
-                                {selectedFunctionalDesigns.includes(design) && (
-                                  <Check className="h-3.5 w-3.5 mr-1 inline-block" />
-                                )}
-                                {design}
-                              </div>
-                            ))}
-                          </div>
-                        </FormItem>
-
                         {/* Featured Product Toggle */}
                         <FormField
                           control={editForm.control}
@@ -2176,161 +1677,6 @@ const AdminProducts = () => {
                         </FormItem>
                       )}
                     />
-
-                    <FormField
-                      control={createForm.control}
-                      name="material"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>材质</FormLabel>
-                            <FormControl>
-                            <Combobox
-                              options={filterOptions.materials}
-                              value={field.value}
-                              onValueChange={field.onChange}
-                              placeholder="选择材质"
-                              allowCustom={true}
-                              onAddCustom={(newMaterial) => {
-                                // 添加到本地选项中
-                                setFilterOptions(prev => ({
-                                  ...prev,
-                                  materials: [...prev.materials, newMaterial].sort()
-                                }));
-                              }}
-                            />
-                            </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={createForm.control}
-                      name="shape"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>形状</FormLabel>
-                            <FormControl>
-                            <Combobox
-                              options={filterOptions.shapes}
-                              value={field.value}
-                              onValueChange={field.onChange}
-                              placeholder="选择形状"
-                              allowCustom={true}
-                              onAddCustom={(newShape) => {
-                                setFilterOptions(prev => ({
-                                  ...prev,
-                                  shapes: [...prev.shapes, newShape].sort()
-                                }));
-                              }}
-                            />
-                            </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={createForm.control}
-                        name="tubeType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>管型</FormLabel>
-                              <FormControl>
-                              <Combobox
-                                options={["", ...filterOptions.tubeTypes]}
-                                value={field.value || ""}
-                                onValueChange={(value) => field.onChange(value === "" ? undefined : value)}
-                                placeholder="选择管型（可选）"
-                                allowCustom={true}
-                                onAddCustom={(newTubeType) => {
-                                  setFilterOptions(prev => ({
-                                    ...prev,
-                                    tubeTypes: [...prev.tubeTypes, newTubeType].sort()
-                                  }));
-                                }}
-                              />
-                              </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={createForm.control}
-                        name="boxType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>盒型</FormLabel>
-                              <FormControl>
-                              <Combobox
-                                options={["", ...filterOptions.boxTypes]}
-                                value={field.value || ""}
-                                onValueChange={(value) => field.onChange(value === "" ? undefined : value)}
-                                placeholder="选择盒型（可选）"
-                                allowCustom={true}
-                                onAddCustom={(newBoxType) => {
-                                  setFilterOptions(prev => ({
-                                    ...prev,
-                                    boxTypes: [...prev.boxTypes, newBoxType].sort()
-                                  }));
-                                }}
-                              />
-                              </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={createForm.control}
-                      name="processType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>工艺类型</FormLabel>
-                            <FormControl>
-                            <Combobox
-                              options={["", ...filterOptions.processTypes]}
-                              value={field.value || ""}
-                              onValueChange={(value) => field.onChange(value === "" ? undefined : value)}
-                              placeholder="选择工艺类型（可选）"
-                              allowCustom={true}
-                              onAddCustom={(newProcessType) => {
-                                setFilterOptions(prev => ({
-                                  ...prev,
-                                  processTypes: [...prev.processTypes, newProcessType].sort()
-                                }));
-                              }}
-                            />
-                            </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormItem>
-                      <FormLabel>功能设计</FormLabel>
-                      <div className="flex flex-wrap gap-2">
-                        {(filterOptions.functionalDesigns || []).map((design) => (
-                          <div
-                            key={design}
-                            className={`px-3 py-1.5 rounded-full text-sm cursor-pointer transition-colors ${
-                              selectedFunctionalDesigns.includes(design)
-                                ? "bg-gray-900 text-white"
-                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            }`}
-                            onClick={() => toggleFunctionalDesign(design)}
-                          >
-                            {selectedFunctionalDesigns.includes(design) && (
-                              <Check className="h-3.5 w-3.5 mr-1 inline-block" />
-                            )}
-                            {design}
-                          </div>
-                        ))}
-                      </div>
-                    </FormItem>
 
                     {/* Featured Product Toggle */}
                     <FormField

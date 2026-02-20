@@ -140,12 +140,12 @@ class DataQualityAnalyzer:
     """数据质量分析器"""
 
     # 重要字段定义
-    CRITICAL_FIELDS = ["code", "name", "shape", "material", "factory_price"]
-    IMPORTANT_FIELDS = ["description", "series_id", "dimensions", "images"]
+    CRITICAL_FIELDS = ["code", "name", "factory_price"]
+    IMPORTANT_FIELDS = ["description", "series_id", "images"]
     OPTIONAL_FIELDS = [
-        "cost_price", "has_sample", "box_dimensions", "box_quantity",
+        "cost_price", "has_sample",
         "in_stock", "popularity_score", "is_featured",
-        "sire_code", "dam_code", "functional_designs"
+        "sire_code", "dam_code"
     ]
 
     @staticmethod
@@ -179,12 +179,6 @@ class DataQualityAnalyzer:
         else:
             missing_fields.append("images")
             warnings.append("缺少产品图片，无法展示")
-
-        if product.get("dimensions"):
-            score += 1
-        else:
-            missing_fields.append("dimensions")
-            warnings.append("缺少尺寸信息，影响运费计算")
 
         if product.get("series_id"):
             score += 1
