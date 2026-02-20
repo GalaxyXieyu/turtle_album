@@ -27,7 +27,7 @@ type Props = {
   mode: "create" | "edit";
 };
 
-export function ProductFormFields({ control, mode }: Props) {
+export function ProductFormFields({ control }: Props) {
   return (
     <div className="space-y-6">
       <div className="space-y-4 border-b pb-6">
@@ -61,59 +61,55 @@ export function ProductFormFields({ control, mode }: Props) {
           )}
         />
 
-        {mode === "edit" && (
-          <>
-            <FormField
-              control={control}
-              name="stage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>阶段</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="选择阶段" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {TURTLE_STAGES.map((item) => (
-                        <SelectItem key={item.value} value={item.value}>
-                          {item.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <FormField
+          control={control}
+          name="stage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>阶段</FormLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择阶段" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {TURTLE_STAGES.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-            <FormField
-              control={control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>状态</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="选择状态" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {PRODUCT_STATUSES.map((item) => (
-                        <SelectItem key={item.value} value={item.value}>
-                          {item.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        )}
+        <FormField
+          control={control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>状态</FormLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择状态" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {PRODUCT_STATUSES.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={control}
