@@ -41,8 +41,8 @@ class ProductBase(BaseModel):
     description: Optional[str] = None
 
     # Lifecycle fields
-    stage: str = "unknown"
-    status: ProductStatus = ProductStatus.DRAFT
+    stage: str = "hatchling"
+    status: ProductStatus = ProductStatus.ACTIVE
 
     # Turtle-album extensions (optional in generic Product schema for backward compatibility)
     series_id: Optional[str] = None

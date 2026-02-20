@@ -59,8 +59,8 @@ class Product(Base):
     has_sample = Column(Boolean, default=False)
 
     # Stage/status fields (string-based for flexibility; enforced at API level)
-    stage = Column(String, nullable=False, default="unknown", index=True)
-    status = Column(String, nullable=False, default="draft", index=True)
+    stage = Column(String, nullable=False, default="hatchling", index=True)
+    status = Column(String, nullable=False, default="active", index=True)
 
     # Status and metadata
     in_stock = Column(Boolean, default=True)

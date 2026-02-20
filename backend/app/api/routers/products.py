@@ -60,6 +60,10 @@ async def get_products(
     sort: Optional[SortOption] = Query(None),
     sex: Optional[str] = Query(None),
     series_id: Optional[str] = Query(None),
+    stage: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    price_min: Optional[float] = Query(None),
+    price_max: Optional[float] = Query(None),
     db: Session = Depends(get_db)
 ):
     """Get products with filtering, sorting, and pagination."""
@@ -82,6 +86,18 @@ async def get_products(
 
     if series_id:
         query = query.filter(Product.series_id == series_id)
+
+    if stage:
+        query = query.filter(Product.stage == stage)
+
+    if status:
+        query = query.filter(Product.status == status)
+
+    # Apply price range filter
+    if price_min is not None:
+        query = query.filter(Product.factory_price >= price_min)
+    if price_max is not None:
+        query = query.filter(Product.factory_price <= price_max)
 
     # Apply sorting
     if sort == SortOption.NEWEST:
