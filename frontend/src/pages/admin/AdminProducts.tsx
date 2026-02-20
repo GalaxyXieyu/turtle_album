@@ -134,6 +134,8 @@ const formSchema = z.object({
   inStock: z.boolean().default(true),
   popularityScore: z.coerce.number().min(0).max(100).default(0),
   isFeatured: z.boolean().default(false),
+  stage: z.string().default("unknown"),
+  status: z.enum(["draft", "active", "reserved", "sold"]).default("draft"),
   dimensions: z.object({
     weight: z.coerce.number().optional(),
     length: z.coerce.number().optional(),
@@ -768,6 +770,8 @@ const AdminProducts = () => {
       boxQuantity: 0,
       inStock: true,
       popularityScore: 0,
+      stage: "unknown",
+      status: "draft",
       dimensions: {
         weight: 0,
         length: 0,
@@ -798,6 +802,8 @@ const AdminProducts = () => {
       boxQuantity: 0,
       inStock: true,
       popularityScore: 0,
+      stage: "unknown",
+      status: "draft",
       dimensions: {
         weight: 0,
         length: 0,
@@ -829,6 +835,8 @@ const AdminProducts = () => {
         boxQuantity: 0,
         inStock: selectedProduct.inStock,
         popularityScore: selectedProduct.popularityScore,
+        stage: selectedProduct.stage || "unknown",
+        status: selectedProduct.status || "draft",
         dimensions: {
           weight: selectedProduct.dimensions?.weight || 0,
           length: selectedProduct.dimensions?.length || 0,
@@ -874,6 +882,8 @@ const AdminProducts = () => {
         description: values.description || "",
         material: values.material as Material,
         shape: values.shape as Shape,
+        stage: values.stage,
+        status: values.status,
         tube_type: values.tubeType ? values.tubeType as TubeType : undefined,
         box_type: values.boxType ? values.boxType as BoxType : undefined,
         process_type: values.processType ? values.processType as ProcessType : undefined,
@@ -947,6 +957,8 @@ const AdminProducts = () => {
       description: values.description || "",
       material: values.material as Material,
       shape: values.shape as Shape,
+      stage: values.stage,
+      status: values.status,
       tube_type: values.tubeType ? values.tubeType as TubeType : undefined,
       box_type: values.boxType ? values.boxType as BoxType : undefined,
       process_type: values.processType ? values.processType as ProcessType : undefined,
@@ -1511,6 +1523,8 @@ const AdminProducts = () => {
                 </TableHead>
                 <TableHead>性别</TableHead>
                 <TableHead>种类</TableHead>
+                <TableHead>Stage</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">操作</TableHead>
               </TableRow>
             </TableHeader>
@@ -1540,6 +1554,12 @@ const AdminProducts = () => {
                     </TableCell>
                     <TableCell>
                       {seriesList.find(s => s.id === product.seriesId)?.name || '-'}
+                    </TableCell>
+                    <TableCell>{product.stage || '-'}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs">
+                        {product.status || 'draft'}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end">
@@ -1802,6 +1822,44 @@ const AdminProducts = () => {
                               <FormControl>
                                 <Input {...field} placeholder="输入产品货号" />
                               </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={editForm.control}
+                          name="stage"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Stage</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="unknown" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={editForm.control}
+                          name="status"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Status</FormLabel>
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="选择状态" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="draft">draft</SelectItem>
+                                  <SelectItem value="active">active</SelectItem>
+                                  <SelectItem value="reserved">reserved</SelectItem>
+                                  <SelectItem value="sold">sold</SelectItem>
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -2198,6 +2256,44 @@ const AdminProducts = () => {
                           <FormControl>
                             <Input {...field} placeholder="输入产品货号" />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={createForm.control}
+                      name="stage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Stage</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="unknown" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={createForm.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Status</FormLabel>
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="选择状态" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="draft">draft</SelectItem>
+                              <SelectItem value="active">active</SelectItem>
+                              <SelectItem value="reserved">reserved</SelectItem>
+                              <SelectItem value="sold">sold</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}

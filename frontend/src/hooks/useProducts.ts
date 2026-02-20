@@ -8,6 +8,8 @@ interface BackendProductCreate {
   name: string;
   code: string;
   description?: string;
+  stage?: string;
+  status?: 'draft' | 'active' | 'reserved' | 'sold';
   tube_type?: TubeType;
   box_type?: BoxType;
   process_type?: ProcessType;

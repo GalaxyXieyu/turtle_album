@@ -37,6 +37,9 @@ async def create_product(
         code=product_data.code,
         description=product_data.description,
 
+        stage=product_data.stage,
+        status=product_data.status,
+
         # Turtle-album extensions
         series_id=product_data.series_id,
         sex=product_data.sex,

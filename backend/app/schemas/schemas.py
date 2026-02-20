@@ -9,6 +9,13 @@ class SortOption(str, Enum):
     PRICE_LOW = "price_low"
     PRICE_HIGH = "price_high"
 
+
+class ProductStatus(str, Enum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    RESERVED = "reserved"
+    SOLD = "sold"
+
 # Base schemas
 class ProductDimensions(BaseModel):
     weight: Optional[float] = None
@@ -46,6 +53,10 @@ class ProductBase(BaseModel):
     code: str
     description: Optional[str] = None
 
+    # Lifecycle fields
+    stage: str = "unknown"
+    status: ProductStatus = ProductStatus.DRAFT
+
     # Turtle-album extensions (optional in generic Product schema for backward compatibility)
     series_id: Optional[str] = None
     sex: Optional[str] = None  # 'male' | 'female'
@@ -79,6 +90,9 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = None
     code: Optional[str] = None
     description: Optional[str] = None
+
+    stage: Optional[str] = None
+    status: Optional[ProductStatus] = None
 
     # Turtle-album extensions (optional)
     series_id: Optional[str] = None

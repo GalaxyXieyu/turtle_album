@@ -199,29 +199,26 @@ const AdminFeaturedProducts = () => {
     const prev = sorted[idx - 1];
     try {
       const token = localStorage.getItem("admin_token");
-      await Promise.all([
-        fetch(createApiUrl(`${API_ENDPOINTS.FEATURED_PRODUCTS}/${featured.id}`), {
+      const updateSort = async (id: string, sortOrder: number) => {
+        const response = await fetch(createApiUrl(`${API_ENDPOINTS.FEATURED_PRODUCTS}/${id}`), {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ sort_order: prev.sortOrder }),
-        }),
-        fetch(createApiUrl(`${API_ENDPOINTS.FEATURED_PRODUCTS}/${prev.id}`), {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ sort_order: featured.sortOrder }),
-        }),
-      ]);
+          body: JSON.stringify({ sort_order: sortOrder }),
+        });
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.detail || err.message || `HTTP ${response.status}`);
+        }
+      };
+      await Promise.all([updateSort(featured.id, prev.sortOrder), updateSort(prev.id, featured.sortOrder)]);
       await fetchFeaturedProducts();
     } catch (error) {
       toast({
         title: "排序失败",
-        description: "上移活动产品失败",
+        description: error instanceof Error ? error.message : "上移活动产品失败",
         variant: "destructive",
       });
     }
@@ -235,29 +232,26 @@ const AdminFeaturedProducts = () => {
     const next = sorted[idx + 1];
     try {
       const token = localStorage.getItem("admin_token");
-      await Promise.all([
-        fetch(createApiUrl(`${API_ENDPOINTS.FEATURED_PRODUCTS}/${featured.id}`), {
+      const updateSort = async (id: string, sortOrder: number) => {
+        const response = await fetch(createApiUrl(`${API_ENDPOINTS.FEATURED_PRODUCTS}/${id}`), {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ sort_order: next.sortOrder }),
-        }),
-        fetch(createApiUrl(`${API_ENDPOINTS.FEATURED_PRODUCTS}/${next.id}`), {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ sort_order: featured.sortOrder }),
-        }),
-      ]);
+          body: JSON.stringify({ sort_order: sortOrder }),
+        });
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.detail || err.message || `HTTP ${response.status}`);
+        }
+      };
+      await Promise.all([updateSort(featured.id, next.sortOrder), updateSort(next.id, featured.sortOrder)]);
       await fetchFeaturedProducts();
     } catch (error) {
       toast({
         title: "排序失败",
-        description: "下移活动产品失败",
+        description: error instanceof Error ? error.message : "下移活动产品失败",
         variant: "destructive",
       });
     }

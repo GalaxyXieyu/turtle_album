@@ -74,6 +74,10 @@ class Product(Base):
     box_dimensions = Column(String)
     box_quantity = Column(Integer)
 
+    # Stage/status fields (string-based for flexibility; enforced at API level)
+    stage = Column(String, nullable=False, default="unknown", index=True)
+    status = Column(String, nullable=False, default="draft", index=True)
+
     # Status and metadata
     in_stock = Column(Boolean, default=True)
     popularity_score = Column(Integer, default=0)

@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from app.db.migrations import migrate_series_code_and_rel
+from app.db.migrations import migrate_series_code_and_rel, migrate_product_stage_status
 
 
 def main() -> None:
@@ -22,7 +22,8 @@ def main() -> None:
 
     db_path = Path(args.db).expanduser().resolve()
     migrate_series_code_and_rel(db_path)
-    print("OK: migrated series code + relation table")
+    migrate_product_stage_status(db_path)
+    print("OK: migrated series code + relation table + products stage/status")
 
 
 if __name__ == "__main__":

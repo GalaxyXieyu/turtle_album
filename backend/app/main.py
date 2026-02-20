@@ -97,9 +97,10 @@ async def startup_event():
     sqlite_file = get_sqlite_file_path()
     if sqlite_file and sqlite_file.exists():
         try:
-            from app.db.migrations import migrate_series_code_and_rel
+            from app.db.migrations import migrate_series_code_and_rel, migrate_product_stage_status
 
             migrate_series_code_and_rel(sqlite_file)
+            migrate_product_stage_status(sqlite_file)
             logger.info("SQLite migrations applied (idempotent)")
         except Exception as e:
             logger.error(f"SQLite migrations failed: {e}")

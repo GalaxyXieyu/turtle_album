@@ -140,6 +140,7 @@ const SeriesIntroCard: React.FC<SeriesIntroCardProps> = ({ seriesId, seriesName,
 const SeriesFeed: React.FC = () => {
   const [seriesId, setSeriesId] = React.useState<string | null>(null);
   const [sex, setSex] = React.useState<Sex | 'all'>('all');
+  const [activityType, setActivityType] = React.useState<'all' | 'activity'>('all');
 
   const [isHeroCollapsed, setIsHeroCollapsed] = React.useState(false);
 
@@ -188,9 +189,10 @@ const SeriesFeed: React.FC = () => {
 
   const filteredBreeders = React.useMemo(() => {
     const list = breedersQ.data || [];
-    if (sex === 'all') return list;
-    return list.filter((b) => b.sex === sex);
-  }, [breedersQ.data, sex]);
+    const bySex = sex === 'all' ? list : list.filter((b) => b.sex === sex);
+    if (activityType === 'all') return bySex;
+    return bySex.filter((b) => !!b.isFeatured);
+  }, [breedersQ.data, sex, activityType]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-white to-amber-50/40 text-black">
@@ -274,6 +276,31 @@ const SeriesFeed: React.FC = () => {
               </div>
 
               {breedersQ.isLoading ? <div className="ml-auto text-xs text-neutral-500">loading...</div> : null}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="text-xs font-medium text-neutral-600">类型</div>
+              <div className="flex gap-2">
+                {(
+                  [
+                    { key: 'all', label: '全部' },
+                    { key: 'activity', label: '活动' },
+                  ] as const
+                ).map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => setActivityType(t.key)}
+                    className={`h-8 rounded-full border px-3 text-xs shadow-[0_1px_0_rgba(0,0,0,0.04)] transition lg:h-9 lg:px-4 lg:text-sm ${
+                      activityType === t.key
+                        ? 'border-[#FFD400] bg-white text-black shadow-[0_6px_20px_rgba(255,212,0,0.22)]'
+                        : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 hover:shadow-sm'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {seriesQ.isError ? (

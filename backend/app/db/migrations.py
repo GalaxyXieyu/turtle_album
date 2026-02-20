@@ -100,3 +100,48 @@ def migrate_series_code_and_rel(db_path: str | Path) -> None:
         conn.commit()
     finally:
         conn.close()
+
+
+def migrate_product_stage_status(db_path: str | Path) -> None:
+    """Migration v2026-02-20.
+
+    - products: add stage/status columns (NOT NULL with defaults)
+    - products: add indexes on stage/status
+
+    Safe to run multiple times.
+    """
+
+    db_path = Path(db_path).expanduser().resolve()
+    if not db_path.exists():
+        raise FileNotFoundError(f"DB not found: {db_path}")
+
+    conn = sqlite3.connect(str(db_path))
+    try:
+        conn.execute("PRAGMA foreign_keys=ON")
+
+        if not _table_exists(conn, "products"):
+            return
+
+        cols = [r[1] for r in conn.execute("PRAGMA table_info(products)").fetchall()]
+
+        if "stage" not in cols:
+            conn.execute(
+                "ALTER TABLE products ADD COLUMN stage VARCHAR NOT NULL DEFAULT 'unknown'"
+            )
+        if "status" not in cols:
+            conn.execute(
+                "ALTER TABLE products ADD COLUMN status VARCHAR NOT NULL DEFAULT 'draft'"
+            )
+
+        # Backfill any NULLs defensively (older sqlite edge cases / manual edits)
+        conn.execute("UPDATE products SET stage='unknown' WHERE stage IS NULL")
+        conn.execute("UPDATE products SET status='draft' WHERE status IS NULL")
+
+        if not _index_exists(conn, "ix_products_stage"):
+            conn.execute("CREATE INDEX ix_products_stage ON products (stage)")
+        if not _index_exists(conn, "ix_products_status"):
+            conn.execute("CREATE INDEX ix_products_status ON products (status)")
+
+        conn.commit()
+    finally:
+        conn.close()
