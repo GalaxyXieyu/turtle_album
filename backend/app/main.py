@@ -117,17 +117,18 @@ async def startup_event():
 
 # Middleware for request logging
 @app.middleware("http")
+@app.middleware("http")
 async def log_requests(request, call_next):
     start_time = datetime.now()
     response = await call_next(request)
     process_time = datetime.now() - start_time
-    
+
     logger.info(
         f"{request.method} {request.url.path} - "
         f"Status: {response.status_code} - "
         f"Time: {process_time.total_seconds():.3f}s"
     )
-    
+
     return response
 
 # Error handlers
@@ -143,7 +144,8 @@ async def http_exception_handler(request, exc):
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc):
-    logger.error(f"Unhandled exception: {exc}")
+    # Log full traceback to help diagnose production 500s.
+    logger.exception("Unhandled exception")
     return JSONResponse(
         status_code=500,
         content=ErrorResponse(
