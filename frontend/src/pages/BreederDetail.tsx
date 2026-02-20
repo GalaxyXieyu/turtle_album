@@ -405,15 +405,8 @@ const BreederDetail: React.FC = () => {
 
                   {breederQ.data.description ? (
                     <div className="mt-4 rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50/80 to-yellow-50/50 p-3">
-                      <div className="flex flex-wrap gap-2">
-                        {breederQ.data.description.split(/[,，\s]+/).filter(Boolean).map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="rounded-lg border border-amber-300/50 bg-white/80 px-2.5 py-1 text-sm font-medium text-amber-900 shadow-sm"
-                          >
-                            {tag}
-                          </span>
-                        ))}
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed text-amber-900">
+                        {breederQ.data.description}
                       </div>
                     </div>
                   ) : null}
