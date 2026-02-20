@@ -84,7 +84,10 @@ if not os.path.exists("static"):
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-# NOTE: Do not mount UPLOAD_DIR directly; serve via API for future auth control.
+
+# Public image files (optimized/originals) live under UPLOAD_DIR (default: static/images).
+# We mount /images so the frontend can render <img src="/images/...">.
+app.mount("/images", StaticFiles(directory=UPLOAD_DIR), name="images")
 
 # Initialize and validate schema on startup.
 @app.on_event("startup")
