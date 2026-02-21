@@ -176,7 +176,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                             (item.product.images.find((img) => img.type === "main") ||
                             item.product.images[0])?.url
                           }
-                          alt={item.product.name}
+                          alt={item.product.code}
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -186,7 +186,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                         <div className="flex justify-between items-start gap-2">
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-cosmetic-brown-600 text-sm sm:text-base truncate group-hover:text-cosmetic-brown-700 transition-colors">
-                              {item.product.name}
+                              {item.product.code}
                             </h4>
                             <p className="text-xs text-cosmetic-brown-400 mt-1 font-mono">
                               {item.product.code}
@@ -532,7 +532,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                           item.product.images.find((img) => img.type === "main") ||
                           item.product.images[0]
                         ).url}
-                        alt={item.product.name}
+                        alt={item.product.code}
                         style={{
                           width: "100%",
                           height: "100%",
@@ -559,7 +559,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                           marginBottom: "2px",
                           lineHeight: "1.3"
                       }}>
-                        {item.product.name}
+                        {item.product.code}
                       </div>
                       <div style={{
                           fontSize: "10px",

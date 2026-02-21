@@ -43,7 +43,7 @@ export function ProductsListMobile({
                   {getPrimaryImageUrl(product) ? (
                     <img
                       src={getPrimaryImageUrl(product)!}
-                      alt={product.name}
+                      alt={product.code}
                       className="h-full w-full object-cover"
                     />
                   ) : (
@@ -54,8 +54,7 @@ export function ProductsListMobile({
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 truncate mb-1">{product.name}</h3>
-                  <p className="text-sm text-gray-600 mb-1">编号: {product.code}</p>
+                  <h3 className="font-medium text-gray-900 truncate mb-1">{product.code}</h3>
                   <div className="flex gap-2 text-sm text-gray-600">
                     <span>{product.sex === "male" ? "公" : product.sex === "female" ? "母" : "-"}</span>
                     <span>•</span>

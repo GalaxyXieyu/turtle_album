@@ -127,7 +127,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, size = 
       <div className={`${styles.padding} flex-grow flex flex-col relative z-10 ${styles.spacing}`}>
         <Link to={`/product/${product.id}`}>
           <h3 className={`font-semibold text-cosmetic-brown-600 group-hover:text-cosmetic-brown-500 line-clamp-2 ${styles.titleHeight} ${styles.titleSize} leading-tight transition-colors duration-300 font-serif`}>
-            {product.name}
+            {product.code}
           </h3>
         </Link>
         

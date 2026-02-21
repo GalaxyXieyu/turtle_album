@@ -21,7 +21,7 @@ export function useProductFiltering(initialProducts: Product[]) {
       const searchTerm = filters.searchText.toLowerCase();
       filteredProducts = filteredProducts.filter((product) => {
         return (
-          product.name.toLowerCase().includes(searchTerm) ||
+          product.code.toLowerCase().includes(searchTerm) ||
           product.code.toLowerCase().includes(searchTerm) ||
           (product.developmentLineMaterials && product.developmentLineMaterials.some((material) =>
             material.toLowerCase().includes(searchTerm)

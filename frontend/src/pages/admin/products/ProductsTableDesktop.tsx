@@ -7,7 +7,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import type { Product } from "@/types/products";
 import type { Series } from "@/types/turtleAlbum";
 import { ArrowUpDown, Edit, Eye, Trash2 } from "lucide-react";
-import { getStageLabel, getStatusLabel } from "@/constants/filterOptions";
 
 import { getPageNumbers } from "./pagination";
 
@@ -51,12 +50,6 @@ export function ProductsTableDesktop({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[100px]">图片</TableHead>
-              <TableHead onClick={() => onSort("name")} className="cursor-pointer">
-                <div className="flex items-center">
-                  名称
-                  <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
-              </TableHead>
               <TableHead onClick={() => onSort("code")} className="cursor-pointer">
                 <div className="flex items-center">
                   编号
@@ -65,8 +58,6 @@ export function ProductsTableDesktop({
               </TableHead>
               <TableHead>性别</TableHead>
               <TableHead>种类</TableHead>
-              <TableHead>阶段</TableHead>
-              <TableHead>状态</TableHead>
               <TableHead className="text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -79,7 +70,7 @@ export function ProductsTableDesktop({
                       {getPrimaryImageUrl(product) ? (
                         <img
                           src={getPrimaryImageUrl(product)!}
-                          alt={product.name}
+                          alt={product.code}
                           className="h-full w-full object-cover"
                         />
                       ) : (
@@ -89,18 +80,11 @@ export function ProductsTableDesktop({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.code}</TableCell>
                   <TableCell>
                     {product.sex === "male" ? "公" : product.sex === "female" ? "母" : "-"}
                   </TableCell>
                   <TableCell>{seriesList.find((s) => s.id === product.seriesId)?.name || "-"}</TableCell>
-                  <TableCell>{product.stage ? getStageLabel(product.stage) : "-"}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="text-xs">
-                      {getStatusLabel(product.status || "active")}
-                    </Badge>
-                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end">
                       <Button
@@ -133,7 +117,7 @@ export function ProductsTableDesktop({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center">
                   没有找到符合条件的产品
                 </TableCell>
               </TableRow>

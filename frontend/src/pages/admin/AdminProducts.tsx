@@ -309,7 +309,6 @@ const AdminProducts = () => {
     try {
       // First create the product without images
       const backendProductData = {
-        name: values.code,
         code: values.code,
         description: values.description || "",
         series_id: values.seriesId?.trim() || null,
@@ -365,7 +364,6 @@ const AdminProducts = () => {
     if (!selectedProduct) return;
 
     const updatedProductData = {
-      name: values.code,
       code: values.code,
       description: values.description || "",
       series_id: values.seriesId?.trim() || null,

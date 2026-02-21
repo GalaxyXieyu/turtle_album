@@ -120,7 +120,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ products }) => {
                       {/* 产品信息 - 增强设计 */}
                       <div className="flex-1 flex flex-col text-center space-y-3">
                         <h3 className="font-bold text-cosmetic-brown-600 text-lg leading-tight line-clamp-2 group-hover:text-cosmetic-brown-500 transition-colors duration-500 font-serif tracking-wide">
-                          {product.name}
+                          {product.code}
                         </h3>
 
                         {/* 装饰性分割线 */}

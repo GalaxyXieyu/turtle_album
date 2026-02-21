@@ -33,12 +33,9 @@ async def create_product(
 
     # Create product
     product = Product(
-        name=product_data.name,
         code=product_data.code,
         description=product_data.description,
 
-        stage=product_data.stage,
-        status=product_data.status.value if hasattr(product_data.status, "value") else product_data.status,
 
         # Turtle-album extensions
         series_id=product_data.series_id,
@@ -105,10 +102,6 @@ async def update_product(
     update_data = product_data.model_dump(exclude_unset=True)
     if not update_data:
         raise HTTPException(status_code=400, detail="No valid fields to update")
-
-    # Persist enum values as plain strings.
-    if "status" in update_data and hasattr(update_data["status"], "value"):
-        update_data["status"] = update_data["status"].value
 
     # Cross-field validation needs existing DB values (e.g. sex not provided during update).
     resolved_sex = (update_data.get("sex") or product.sex or "").lower()

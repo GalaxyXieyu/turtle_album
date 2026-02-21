@@ -38,7 +38,7 @@ class Product(Base):
     __tablename__ = "products"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(String, nullable=False, index=True)
+    # Display identifier: code (编号). No separate name/stage/status fields.
     code = Column(String, nullable=False, unique=True, index=True)
     description = Column(Text)
 
@@ -58,10 +58,6 @@ class Product(Base):
     # Canonical selling price
     price = Column(Float, nullable=False)
     has_sample = Column(Boolean, default=False)
-
-    # Stage/status fields (string-based for flexibility; enforced at API level)
-    stage = Column(String, nullable=False, default="hatchling", index=True)
-    status = Column(String, nullable=False, default="active", index=True)
 
     # Status and metadata
     in_stock = Column(Boolean, default=True)

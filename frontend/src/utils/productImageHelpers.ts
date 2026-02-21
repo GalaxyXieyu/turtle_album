@@ -104,7 +104,7 @@ export const getOptimizedImageProps = (
   return {
     productCode: imageInfo.productCode,
     imageName: imageInfo.imageName,
-    alt: `${product.name} - 图片 ${imageIndex + 1}`,
+    alt: `${product.code} - 图片 ${imageIndex + 1}`,
     usage
   };
 };

@@ -19,7 +19,7 @@ try:
     )
 
     if breeder:
-        print(f"Breeder: {breeder.code} - {breeder.name}")
+        print(f"Breeder: {breeder.code}")
         print(f"Images count: {len(breeder.images) if breeder.images else 0}")
         if breeder.images:
             for img in breeder.images:

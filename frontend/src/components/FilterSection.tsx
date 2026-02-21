@@ -7,7 +7,6 @@ import { Slider } from "@/components/ui/slider";
 import { X, Search } from "lucide-react";
 import { FilterOptions, SortOption } from "@/types/products";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TURTLE_STAGES, PRODUCT_STATUSES } from "@/constants/filterOptions";
 
 interface FilterSectionProps {
   onFilterChange: (filters: Partial<FilterOptions>) => void;
@@ -44,8 +43,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
   const countActiveFilters = () => {
     let count = 0;
     if (activeFilters.searchText?.trim()) count += 1;
-    if (activeFilters.stage) count += 1;
-    if (activeFilters.status) count += 1;
     if (activeFilters.priceRange) count += 1;
     return count;
   };
@@ -60,19 +57,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
     });
   };
 
-  const handleStageChange = (value: string) => {
-    onFilterChange({
-      ...activeFilters,
-      stage: value === "all" ? undefined : value
-    });
-  };
-
-  const handleStatusChange = (value: string) => {
-    onFilterChange({
-      ...activeFilters,
-      status: value === "all" ? undefined : (value as any)
-    });
-  };
 
   const handlePriceRangeChange = (values: number[]) => {
     onFilterChange({
@@ -87,8 +71,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
   const clearAllFilters = () => {
     onFilterChange({
       searchText: "",
-      stage: undefined,
-      status: undefined,
       priceRange: undefined
     });
   };
@@ -125,48 +107,12 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                 <Input
                   id="search"
                   type="text"
-                  placeholder="搜索产品名称、编号等..."
+                  placeholder="搜索编号、描述等..."
                   value={activeFilters.searchText || ""}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10 border-cosmetic-brown-200 focus:border-cosmetic-gold-400"
                 />
               </div>
-            </div>
-
-            {/* Stage filter */}
-            <div className="mb-4">
-              <Label htmlFor="stage" className="text-cosmetic-brown-300">生命阶段:</Label>
-              <Select value={activeFilters.stage || "all"} onValueChange={handleStageChange}>
-                <SelectTrigger className="mt-1 border-cosmetic-brown-200">
-                  <SelectValue placeholder="选择阶段" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部阶段</SelectItem>
-                  {TURTLE_STAGES.map(stage => (
-                    <SelectItem key={stage.value} value={stage.value}>
-                      {stage.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Status filter */}
-            <div className="mb-4">
-              <Label htmlFor="status" className="text-cosmetic-brown-300">产品状态:</Label>
-              <Select value={activeFilters.status || "all"} onValueChange={handleStatusChange}>
-                <SelectTrigger className="mt-1 border-cosmetic-brown-200">
-                  <SelectValue placeholder="选择状态" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部状态</SelectItem>
-                  {PRODUCT_STATUSES.map(status => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             {/* Price range filter */}
@@ -248,7 +194,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
             <Input
               id="desktop-search"
               type="text"
-              placeholder="搜索产品名称、编号等..."
+              placeholder="搜索编号、描述等..."
               value={activeFilters.searchText || ""}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10 border-cosmetic-brown-200 focus:border-cosmetic-gold-400"
@@ -259,41 +205,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         {/* Expandable filter content */}
         {isExpanded && (
           <div className="space-y-4">
-            {/* Stage filter */}
-            <div>
-              <Label htmlFor="desktop-stage" className="text-cosmetic-brown-300">生命阶段:</Label>
-              <Select value={activeFilters.stage || "all"} onValueChange={handleStageChange}>
-                <SelectTrigger className="mt-1 border-cosmetic-brown-200">
-                  <SelectValue placeholder="选择阶段" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部阶段</SelectItem>
-                  {TURTLE_STAGES.map(stage => (
-                    <SelectItem key={stage.value} value={stage.value}>
-                      {stage.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Status filter */}
-            <div>
-              <Label htmlFor="desktop-status" className="text-cosmetic-brown-300">产品状态:</Label>
-              <Select value={activeFilters.status || "all"} onValueChange={handleStatusChange}>
-                <SelectTrigger className="mt-1 border-cosmetic-brown-200">
-                  <SelectValue placeholder="选择状态" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部状态</SelectItem>
-                  {PRODUCT_STATUSES.map(status => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
             {/* Price range filter */}
             <div>

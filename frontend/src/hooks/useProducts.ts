@@ -5,11 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 
 // Backend API data structure (snake_case) - matching the one in productService
 interface BackendProductCreate {
-  name: string;
   code: string;
   description?: string;
-  stage?: string;
-  status?: 'draft' | 'active' | 'reserved' | 'sold';
   series_id?: string | null;
   dimensions: {
     weight?: number;

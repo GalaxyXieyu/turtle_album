@@ -124,7 +124,7 @@ const AdminDashboard = () => {
                     {product.images && product.images[0] ? (
                       <img
                         src={product.images[0].url}
-                        alt={product.name}
+                        alt={product.code}
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -132,7 +132,7 @@ const AdminDashboard = () => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{product.code}</p>
                     <p className="text-xs text-gray-600">
                       {new Date(product.createdAt).toLocaleDateString('zh-CN')}
                     </p>
@@ -158,7 +158,7 @@ const AdminDashboard = () => {
                     {product.images && product.images[0] ? (
                       <img
                         src={product.images[0].url}
-                        alt={product.name}
+                        alt={product.code}
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -166,7 +166,7 @@ const AdminDashboard = () => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{product.code}</p>
                     <p className="text-xs text-gray-600">
                       人气: {product.popularityScore}/100
                     </p>

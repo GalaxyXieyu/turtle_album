@@ -21,7 +21,7 @@ from alembic.config import Config
 from sqlalchemy import inspect
 
 from app.db.migrations import (
-    migrate_product_stage_status,
+    migrate_drop_product_fields,
     migrate_remove_product_dimensions,
     migrate_series_code_and_rel,
 )
@@ -59,7 +59,7 @@ def _run_legacy_sqlite_migrations_once() -> None:
     logger.warning(f"Legacy sqlite bridge backup created: {backup_path}")
 
     migrate_series_code_and_rel(sqlite_file)
-    migrate_product_stage_status(sqlite_file)
+    migrate_drop_product_fields(sqlite_file)
     if _auto_apply_destructive_sqlite_migrations():
         migrate_remove_product_dimensions(sqlite_file)
         logger.warning(

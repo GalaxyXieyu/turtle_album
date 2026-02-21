@@ -39,7 +39,7 @@ export function ProductDetailView({
             <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
               <img
                 src={imageUploads[currentImageIndex]?.preview}
-                alt={product.name}
+                alt={product.code}
                 className="h-full w-full object-cover"
               />
 
@@ -108,8 +108,7 @@ export function ProductDetailView({
           </div>
         )}
 
-        <h3 className="text-xl font-medium text-gray-900">{product.name}</h3>
-        <p className="text-sm text-gray-600 mt-1">编号: {product.code}</p>
+        <h3 className="text-xl font-medium text-gray-900">{product.code}</h3>
       </div>
 
       <div>

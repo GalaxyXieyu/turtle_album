@@ -10,12 +10,6 @@ class SortOption(str, Enum):
     PRICE_HIGH = "price_high"
 
 
-class ProductStatus(str, Enum):
-    DRAFT = "draft"
-    ACTIVE = "active"
-    RESERVED = "reserved"
-    SOLD = "sold"
-
 # Base schemas
 class ProductImageBase(BaseModel):
     url: str
@@ -34,17 +28,13 @@ class ProductImageResponse(ProductImageBase):
     class Config:
         from_attributes = True
 
-# Product schemas - 完全没有枚举约束
+# Product schemas
 class ProductBase(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
-    name: str
     code: str
     description: Optional[str] = None
 
-    # Lifecycle fields
-    stage: str = "hatchling"
-    status: ProductStatus = ProductStatus.ACTIVE
 
     # Turtle-album extensions (optional in generic Product schema for backward compatibility)
     series_id: Optional[str] = None
@@ -80,12 +70,8 @@ class ProductCreate(ProductBase):
 class ProductUpdate(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
-    name: Optional[str] = None
     code: Optional[str] = None
     description: Optional[str] = None
-
-    stage: Optional[str] = None
-    status: Optional[ProductStatus] = None
 
     # Turtle-album extensions (optional)
     series_id: Optional[str] = None

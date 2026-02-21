@@ -260,7 +260,7 @@ const AdminFeaturedProducts = () => {
 
   // Filter available products based on search
   const filteredAvailableProducts = availableProducts.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -336,7 +336,7 @@ const AdminFeaturedProducts = () => {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{featured.product.name}</TableCell>
+                    <TableCell className="font-medium">{featured.product.code}</TableCell>
                     <TableCell>{featured.product.code}</TableCell>
                     <TableCell>{formatCnyPriceOrNotForSale(featured.product.pricing.price)}</TableCell>
                     <TableCell>{featured.sortOrder}</TableCell>
@@ -389,7 +389,7 @@ const AdminFeaturedProducts = () => {
                     {featured.product.images.length > 0 ? (
                       <img
                         src={createImageUrl(featured.product.images[0].url)}
-                        alt={featured.product.images[0].alt || featured.product.name}
+                        alt={featured.product.images[0].alt || featured.product.code}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -398,7 +398,7 @@ const AdminFeaturedProducts = () => {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-gray-900 truncate">{featured.product.name}</p>
+                    <p className="font-semibold text-gray-900 truncate">{featured.product.code}</p>
                     <p className="text-sm text-gray-600 mt-0.5">编号: {featured.product.code}</p>
                     <div className="mt-1 text-sm text-gray-900 font-medium">
                       {formatCnyPriceOrNotForSale(featured.product.pricing.price)}
@@ -479,7 +479,7 @@ const AdminFeaturedProducts = () => {
                       <SelectContent>
                         {nonFeaturedProducts.map((product) => (
                           <SelectItem key={product.id} value={product.id}>
-                            {product.name} ({product.code})
+                            {product.code} ({product.code})
                           </SelectItem>
                         ))}
                       </SelectContent>

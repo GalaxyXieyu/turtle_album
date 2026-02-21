@@ -80,9 +80,13 @@ def migrate_series_code_and_rel(db_path: str | Path) -> None:
             )
 
         if not _index_exists(conn, "ix_series_product_rel_series_id"):
-            conn.execute("CREATE INDEX ix_series_product_rel_series_id ON series_product_rel (series_id)")
+            conn.execute(
+                "CREATE INDEX ix_series_product_rel_series_id ON series_product_rel (series_id)"
+            )
         if not _index_exists(conn, "ix_series_product_rel_product_id"):
-            conn.execute("CREATE INDEX ix_series_product_rel_product_id ON series_product_rel (product_id)")
+            conn.execute(
+                "CREATE INDEX ix_series_product_rel_product_id ON series_product_rel (product_id)"
+            )
 
         # 5) backfill from products.series_id
         conn.execute(
@@ -99,13 +103,14 @@ def migrate_series_code_and_rel(db_path: str | Path) -> None:
         conn.close()
 
 
-def migrate_product_stage_status(db_path: str | Path) -> None:
-    """Migration v2026-02-20.
+def migrate_drop_product_fields(db_path: str | Path) -> None:
+    """Migration v2026-02-21.
 
-    - products: add stage/status columns (NOT NULL with defaults)
-    - products: add indexes on stage/status
+    - products: drop name, stage, status columns
 
     Safe to run multiple times.
+
+    Note: SQLite supports DROP COLUMN on recent versions; we rely on that here.
     """
 
     db_path = Path(db_path).expanduser().resolve()
@@ -121,23 +126,17 @@ def migrate_product_stage_status(db_path: str | Path) -> None:
 
         cols = [r[1] for r in conn.execute("PRAGMA table_info(products)").fetchall()]
 
-        if "stage" not in cols:
-            conn.execute(
-                "ALTER TABLE products ADD COLUMN stage VARCHAR NOT NULL DEFAULT 'hatchling'"
-            )
-        if "status" not in cols:
-            conn.execute(
-                "ALTER TABLE products ADD COLUMN status VARCHAR NOT NULL DEFAULT 'active'"
-            )
+        if "name" in cols:
+            conn.execute("ALTER TABLE products DROP COLUMN name")
+        if "stage" in cols:
+            conn.execute("ALTER TABLE products DROP COLUMN stage")
+        if "status" in cols:
+            conn.execute("ALTER TABLE products DROP COLUMN status")
 
-        # Backfill any NULLs defensively (older sqlite edge cases / manual edits)
-        conn.execute("UPDATE products SET stage='hatchling' WHERE stage IS NULL")
-        conn.execute("UPDATE products SET status='active' WHERE status IS NULL")
-
-        if not _index_exists(conn, "ix_products_stage"):
-            conn.execute("CREATE INDEX ix_products_stage ON products (stage)")
-        if not _index_exists(conn, "ix_products_status"):
-            conn.execute("CREATE INDEX ix_products_status ON products (status)")
+        # Cleanup indexes if they exist.
+        for idx in ("ix_products_name", "ix_products_stage", "ix_products_status"):
+            if _index_exists(conn, idx):
+                conn.execute(f"DROP INDEX {idx}")
 
         conn.commit()
     finally:

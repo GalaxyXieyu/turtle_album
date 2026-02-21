@@ -15,11 +15,8 @@ export interface ProductPricing {
 
 export interface Product {
   id: string;
-  name: string;
   code: string;
   description: string;
-  stage: string;
-  status: 'draft' | 'active' | 'reserved' | 'sold';
   seriesId?: string | null;
   sex?: 'male' | 'female' | string | null;
   offspringUnitPrice?: number | null;
@@ -37,15 +34,11 @@ export interface Product {
 export interface FilterOptions {
   searchText?: string;
   seriesId?: string;
-  stage?: string;
-  status?: 'draft' | 'active' | 'reserved' | 'sold';
   priceRange?: { min: number; max: number };
 }
 
 export interface FilterOptionsResponse {
   priceRange: { min: number; max: number };
-  stages: string[];
-  statuses: string[];
 }
 
 export type SortOption = 'newest' | 'popular' | 'price_low' | 'price_high';

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse
@@ -15,6 +16,7 @@ from app.db.session import (
 )
 from app.db.alembic_manager import upgrade_or_bootstrap_schema
 from app.core.security import create_admin_user
+from app.core.request_validation import has_removed_product_field_error
 from app.schemas.schemas import ErrorResponse
 
 # Import routers
@@ -143,6 +145,21 @@ async def http_exception_handler(request, exc):
             message=exc.detail,
             success=False
         ).model_dump()
+    )
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
+    # Contract: Product removed fields must raise 400 (not silently ignored).
+    # Keep the default 422 behavior for all other validation errors.
+    if has_removed_product_field_error(exc):
+        return JSONResponse(
+            status_code=400,
+            content=ErrorResponse(message="Removed fields are not allowed", success=False).model_dump(),
+        )
+
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
     )
 
 @app.exception_handler(Exception)

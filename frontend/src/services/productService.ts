@@ -3,11 +3,8 @@ import { Product, FilterOptions, FilterOptionsResponse, SortOption } from '@/typ
 
 // Backend API data structure (snake_case)
 interface BackendProductCreate {
-  name: string;
   code: string;
   description?: string;
-  stage?: string;
-  status?: 'draft' | 'active' | 'reserved' | 'sold';
   series_id?: string | null;
   cost_price: number;
   price: number;

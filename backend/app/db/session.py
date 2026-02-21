@@ -71,7 +71,7 @@ def validate_schema_or_raise() -> None:
     We still fail fast when columns are missing to avoid partial startup.
     """
     required_columns: Dict[str, Set[str]] = {
-        "products": {"series_id", "sex", "offspring_unit_price", "stage", "status"},
+        "products": {"series_id", "sex", "offspring_unit_price", "code"},
         # series.code is required for admin UI + OpenClaw uploads; series.name is not unique.
         "series": {"id", "name", "code"},
         "series_product_rel": {"series_id", "product_id"},

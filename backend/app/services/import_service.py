@@ -27,7 +27,6 @@ class BatchImportService:
     # Standard columns expected in the Excel file
     COLUMN_MAPPING = {
         '编号': 'code',
-        '产品名称': 'name',
         '产品描述': 'description',
         '出厂价格': 'price',
         '是否有样品': 'has_sample'
@@ -45,7 +44,6 @@ class BatchImportService:
         # Add a sample row
         sample_data = {
             '编号': 'P001',
-            '产品名称': 'Sample Product',
             '产品描述': 'This is a sample product',
             '出厂价格': 1.5,
             '是否有样品': '是'
@@ -61,27 +59,11 @@ class BatchImportService:
             instructions = pd.DataFrame({
                 'Field': columns,
                 'Description': [
-                    'Required. Unique identifier.',
-                    'Product Name',
-                    'Detailed description',
-                    'tube, box, or other',
-                    'Specific tube type',
-                    'Specific box type',
-                    'Product shape',
-                    'Material composition',
-                    'Comma separated features',
-                    'Price (Number)',
-                    '是 (Yes) or 否 (No)',
-                    'Weight in grams',
-                    'Length in mm',
-                    'Width in mm',
-                    'Height in mm',
-                    'Min capacity',
-                    'Max capacity',
-                    'Number of compartments',
-                    'Carton dimensions',
-                    'Units per carton'
-                ]
+                    'Required. Product code (unique).',
+                    'Optional. Product description.',
+                    'Optional. Price (number). Default 0.',
+                    'Optional. Has sample: 是/否.',
+                ],
             })
             instructions.to_excel(writer, index=False, sheet_name='Instructions')
             
@@ -195,7 +177,6 @@ class BatchImportService:
                         existing_product = db.query(Product).filter(Product.code == product_code).first()
 
                         product_data = {
-                            'name': BatchImportService._clean_string(row.get('产品名称')) or f"Product {product_code}",
                             'description': BatchImportService._clean_string(row.get('产品描述')) or "",
                             'price': BatchImportService._safe_float(row.get('出厂价格')) or 0.0,
                             'has_sample': BatchImportService._clean_string(row.get('是否有样品')) == '是',

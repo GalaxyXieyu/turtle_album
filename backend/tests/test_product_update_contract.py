@@ -28,7 +28,6 @@ def _build_test_db():
 
 def _seed_product(db, code: str = "T-001") -> Product:
     product = Product(
-        name=code,
         code=code,
         description="",
         price=0.0,
