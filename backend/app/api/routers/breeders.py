@@ -71,7 +71,6 @@ async def get_breeder_by_code(
         data={
             "id": breeder.id,
             "code": breeder.code,
-            "name": breeder.name,
             "mainImageUrl": main_image_url,
         },
         message="Breeder retrieved successfully",
@@ -155,7 +154,6 @@ async def get_breeder_records(
                 "male": (
                     {
                         "id": male_map.get(r.male_id).id,
-                        "name": male_map.get(r.male_id).name,
                         "code": male_map.get(r.male_id).code,
                     }
                     if male_map.get(r.male_id)
@@ -198,7 +196,6 @@ async def get_breeder_records(
                 "female": (
                     {
                         "id": female_map.get(r.female_id).id,
-                        "name": female_map.get(r.female_id).name,
                         "code": female_map.get(r.female_id).code,
                     }
                     if female_map.get(r.female_id)
@@ -247,7 +244,6 @@ def _build_node(breeder: Product, generation: int, relationship: str) -> dict:
     return {
         "id": breeder.id,
         "code": breeder.code,
-        "name": breeder.name,
         "sex": breeder.sex,
         "thumbnailUrl": thumbnail_url,
         "generation": generation,
@@ -424,7 +420,6 @@ async def get_breeder_family_tree(
                 "id": r.id,
                 "maleId": r.male_id,
                 "maleCode": male_map.get(r.male_id).code if male_map.get(r.male_id) else None,
-                "maleName": male_map.get(r.male_id).name if male_map.get(r.male_id) else None,
                 "matedAt": r.mated_at.isoformat() if r.mated_at else None,
                 "notes": r.notes,
             }
@@ -463,7 +458,6 @@ async def get_breeder_family_tree(
                 "id": r.id,
                 "femaleId": r.female_id,
                 "femaleCode": female_map.get(r.female_id).code if female_map.get(r.female_id) else None,
-                "femaleName": female_map.get(r.female_id).name if female_map.get(r.female_id) else None,
                 "matedAt": r.mated_at.isoformat() if r.mated_at else None,
                 "notes": r.notes,
             }
