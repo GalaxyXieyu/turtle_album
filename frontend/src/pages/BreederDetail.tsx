@@ -257,41 +257,33 @@ const ParentPill: React.FC<{
   const parentId = query.data?.id;
   const isLoading = hasCode && (query.isLoading || (query.isFetching && !query.data && !query.isError));
   const hasWarning = hasCode && query.isError && !query.data;
-  const displayCode = hasCode ? query.data?.code || trimmedCode : '无';
+  const displayCode = hasCode ? query.data?.code || trimmedCode : '未知';
   const isClickable = !!parentId;
 
-  // Keep this low-salience: color is already strong, so avoid big backgrounds.
   const pillBase =
     'inline-flex max-w-full items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition';
   const theme =
     variant === 'father'
       ? {
-          normal: 'border-sky-200 text-sky-700',
-          loading: 'border-sky-200 text-sky-700',
-          hover: 'hover:border-sky-300',
+          normal: 'border-sky-200 bg-sky-50/70 text-sky-700',
+          loading: 'border-sky-200 bg-sky-50/70 text-sky-700',
+          hover: 'hover:border-sky-300 hover:bg-sky-50',
           focus: 'focus-visible:ring-sky-300',
         }
       : {
-          normal: 'border-rose-200 text-rose-700',
-          loading: 'border-rose-200 text-rose-700',
-          hover: 'hover:border-rose-300',
+          normal: 'border-rose-200 bg-rose-50/70 text-rose-700',
+          loading: 'border-rose-200 bg-rose-50/70 text-rose-700',
+          hover: 'hover:border-rose-300 hover:bg-rose-50',
           focus: 'focus-visible:ring-rose-300',
         };
-  const warningColor = 'border-amber-200 text-amber-700';
-  const placeholderColor = 'border-neutral-200 text-neutral-400';
-  const stateColor = !hasCode
-    ? placeholderColor
-    : hasWarning
-      ? warningColor
-      : isLoading
-        ? theme.loading
-        : theme.normal;
-  const interactiveColor = !hasCode || hasWarning ? '' : theme.hover;
+  const warningColor = 'border-amber-200 bg-amber-50/70 text-amber-700';
+  const stateColor = hasWarning ? warningColor : isLoading ? theme.loading : theme.normal;
+  const interactiveColor = isClickable && !hasWarning ? theme.hover : '';
 
   const content = (
     <>
       <span className="shrink-0 tracking-wide">{label}</span>
-      <span className={`truncate ${!hasCode ? 'text-neutral-400' : ''}`}>{displayCode}</span>
+      <span className="truncate">{displayCode}</span>
       {isLoading ? (
         <span
           aria-hidden="true"
@@ -479,7 +471,7 @@ const BreederDetail: React.FC = () => {
                     ) : null}
                   </div>
 
-                  <div className="mt-4 flex w-full items-center gap-2">
+                  <div className="mt-4 flex w-full flex-nowrap items-center gap-2">
                     <ParentPill label="父本" variant="father" code={breederQ.data.sireCode} query={sireBreederQ} />
                     <ParentPill label="母本" variant="mother" code={breederQ.data.damCode} query={damBreederQ} />
                   </div>
