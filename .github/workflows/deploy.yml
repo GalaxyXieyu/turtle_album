@@ -243,7 +243,8 @@ jobs:
 
           # Run Alembic migrations via a one-off Job using the same image and the same /data PVC.
           # This avoids manual intervention and keeps DB schema in sync with code.
-          MIGRATE_JOB="${WORKLOAD_NAME}-migrate-${GITHUB_SHA}"
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          MIGRATE_JOB="${WORKLOAD_NAME}-migrate-${SHORT_SHA}"
           echo "Running DB migrations via Job: $MIGRATE_JOB"
 
           if [ -z "$PVC_NAME" ]; then
@@ -286,7 +287,8 @@ jobs:
           kubectl logs job/"$MIGRATE_JOB" -n "$NAMESPACE" || true
 
           # Migrate image folders + normalize product_images.url.
-          IMAGE_MIGRATE_JOB="${WORKLOAD_NAME}-image-migrate-${GITHUB_SHA}"
+          # NOTE: K8s Job names must be <=63 chars. Keep this short.
+          IMAGE_MIGRATE_JOB="${WORKLOAD_NAME}-imgmig-${SHORT_SHA}"
           echo "Running image migration via Job: $IMAGE_MIGRATE_JOB"
 
           cat <<YAML | kubectl apply -n "$NAMESPACE" -f -
