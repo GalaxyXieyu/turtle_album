@@ -366,7 +366,8 @@ const BreederDetail: React.FC = () => {
   const sireCode = breederQ.data?.sireCode || null;
   const damCode = breederQ.data?.damCode || null;
 
-  const mateCode = (breederQ.data as any)?.currentMate?.code || breederQ.data?.mateCode || null;
+  const mateCode =
+    (breederQ.data as any)?.currentMate?.code || breederQ.data?.currentMateCode || breederQ.data?.mateCode || null;
   const mateId = (breederQ.data as any)?.currentMate?.id || null;
 
   const sireBreederQ = useQuery({
@@ -491,15 +492,39 @@ const BreederDetail: React.FC = () => {
                   <div className="mt-4 flex w-full flex-nowrap items-center gap-2">
                     <ParentPill label="父本" variant="father" code={breederQ.data.sireCode} query={sireBreederQ} />
                     <ParentPill label="母本" variant="mother" code={breederQ.data.damCode} query={damBreederQ} />
-                    {breederQ.data.sex === 'female' && breederQ.data.currentMate?.id ? (
-                      <Link
-                        to={`/breeder/${breederQ.data.currentMate.id}`}
-                        title={`当前配偶 ${breederQ.data.currentMate.code}`}
-                        className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50/70 px-2 py-0.5 text-[11px] font-semibold text-amber-800 transition hover:border-amber-300 hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-1"
-                      >
-                        <span className="shrink-0 tracking-wide">当前配偶</span>
-                        <span className="truncate">{breederQ.data.currentMate.code}</span>
-                      </Link>
+                    {breederQ.data.sex === 'female' && (mateCode || '').trim() ? (
+                      (() => {
+                        const resolvedMateId = mateId || mateBreederQ.data?.id || null;
+                        const resolvedMateCode =
+                          (breederQ.data as any)?.currentMate?.code || mateBreederQ.data?.code || mateCode;
+                        const pillClassName =
+                          'inline-flex max-w-full items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50/70 px-2 py-0.5 text-[11px] font-semibold text-amber-800 transition hover:border-amber-300 hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-1';
+
+                        if (resolvedMateId) {
+                          return (
+                            <Link
+                              to={`/breeder/${resolvedMateId}`}
+                              title={`当前配偶 ${resolvedMateCode}`}
+                              className={pillClassName}
+                            >
+                              <span className="shrink-0 tracking-wide">当前配偶</span>
+                              <span className="truncate">{resolvedMateCode}</span>
+                            </Link>
+                          );
+                        }
+
+                        // If the mate hasn't been recorded as a breeder item yet, still show
+                        // the code so operators know what to fill next.
+                        return (
+                          <span
+                            title={`当前配偶 ${resolvedMateCode}（未找到详情）`}
+                            className={pillClassName + ' cursor-not-allowed opacity-70'}
+                          >
+                            <span className="shrink-0 tracking-wide">当前配偶</span>
+                            <span className="truncate">{resolvedMateCode}</span>
+                          </span>
+                        );
+                      })()
                     ) : null}
                   </div>
 

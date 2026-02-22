@@ -24,6 +24,7 @@ export interface Breeder {
   sireCode?: string | null;
   damCode?: string | null;
   mateCode?: string | null;
+  currentMateCode?: string | null;
   currentMate?: { id: string; code: string } | null;
   sireImageUrl?: string | null;
   damImageUrl?: string | null;

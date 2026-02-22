@@ -98,6 +98,17 @@ async def get_breeder_detail(
 
     data = convert_product_to_response(breeder)
 
+    # For female breeders, expose a best-effort mate code even when we can't resolve
+    # an actual breeder record id (so the UI can still show the yellow pill).
+    if breeder.sex == "female":
+        data["currentMateCode"] = (
+            (getattr(breeder, "mate_code", None) or "").strip()
+            or (parse_current_mate_code(getattr(breeder, "description", None)) or "").strip()
+            or None
+        )
+    else:
+        data["currentMateCode"] = None
+
     mate = _resolve_current_mate(db, breeder)
     if mate:
         data["currentMate"] = {"id": mate.id, "code": mate.code}
