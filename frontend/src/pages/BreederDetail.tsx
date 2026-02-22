@@ -24,39 +24,83 @@ const sexLabel = (sex?: string | null) => {
 };
 
 interface BreederCarouselProps {
+  images?: Array<{ id?: string; url: string; alt?: string | null }> | null;
+  // Legacy single-image support (some API responses may only provide a mainImageUrl).
   mainImage?: { url: string; alt?: string | null } | null;
   breederCode: string;
   breederSex?: string | null;
-  activeSeries?: { name: string } | null;
+  activeSeries?: { name: string; description?: string | null } | null;
   seriesIntroItems: string[];
 }
 
-const BreederCarousel: React.FC<BreederCarouselProps> = ({ mainImage, breederCode, breederSex, activeSeries, seriesIntroItems }) => {
+const BreederCarousel: React.FC<BreederCarouselProps> = ({
+  images,
+  mainImage,
+  breederCode,
+  breederSex,
+  activeSeries,
+  seriesIntroItems,
+}) => {
   const [currentSlide, setCurrentSlide] = React.useState(() => (seriesIntroItems.length > 0 ? 1 : 0)); // 0=intro, 1=image
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
 
   const hasSeriesIntro = seriesIntroItems.length > 0;
 
+  const imageItems = React.useMemo(() => {
+    const ordered = (images || [])
+      .map((img) => ({
+        id: img?.id,
+        url: typeof img?.url === 'string' ? img.url.trim() : '',
+        alt: typeof img?.alt === 'string' ? img.alt : null,
+      }))
+      .filter((img) => img.url.length > 0);
+
+    if (ordered.length > 0) return ordered;
+
+    const legacyUrl = typeof mainImage?.url === 'string' ? mainImage.url.trim() : '';
+    if (legacyUrl) {
+      return [
+        {
+          id: undefined,
+          url: legacyUrl,
+          alt: typeof mainImage?.alt === 'string' ? mainImage.alt : null,
+        },
+      ];
+    }
+
+    return [];
+  }, [images, mainImage]);
+
   // Keep currentSlide valid when the intro is (not) present. Data can arrive async.
   React.useEffect(() => {
-    if (hasSeriesIntro) {
-      // Default to showing the image when intro becomes available.
-      if (currentSlide === 0) setCurrentSlide(1);
-    } else {
-      // If intro disappears, ensure we stay on the image slide.
-      if (currentSlide !== 0) setCurrentSlide(0);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setCurrentSlide((prev) => {
+      if (hasSeriesIntro) return prev === 0 ? 1 : prev;
+      return 0;
+    });
   }, [hasSeriesIntro]);
 
-  // Optional swipe gesture (wide trigger area). Buttons remain the primary affordance.
+  React.useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [breederCode]);
+
+  React.useEffect(() => {
+    setCurrentImageIndex((idx) => {
+      if (imageItems.length === 0) return 0;
+      return Math.min(idx, imageItems.length - 1);
+    });
+  }, [imageItems.length]);
+
+  // Optional swipe gesture for series intro (wide trigger area). Buttons remain the primary affordance.
   const touchStartX = React.useRef<number | null>(null);
 
   const handleTouchStart: React.TouchEventHandler<HTMLDivElement> = (e) => {
+    if (!hasSeriesIntro || currentSlide !== 0) return;
     touchStartX.current = e.touches[0]?.clientX ?? null;
   };
 
   const handleTouchEnd: React.TouchEventHandler<HTMLDivElement> = (e) => {
-    if (!hasSeriesIntro) return;
+    if (!hasSeriesIntro || currentSlide !== 0) return;
+
     const startX = touchStartX.current;
     touchStartX.current = null;
     const endX = e.changedTouches[0]?.clientX ?? null;
@@ -65,19 +109,23 @@ const BreederCarousel: React.FC<BreederCarouselProps> = ({ mainImage, breederCod
     const delta = endX - startX;
     const threshold = 55;
 
-    if (delta > threshold) setCurrentSlide(0);
+    // Only allow intro -> image swipe, to avoid conflicting with thumbnail horizontal scroll.
     if (delta < -threshold) setCurrentSlide(1);
   };
 
   const effectiveSlide = hasSeriesIntro ? currentSlide : 0;
+  const isShowingImage = effectiveSlide === (hasSeriesIntro ? 1 : 0);
+
+  const activeImage = imageItems[currentImageIndex] || null;
+  const activeImageUrl = activeImage?.url || '';
+  const activeImageAlt = (activeImage?.alt || '').trim() || breederCode;
+
+  const canPrevImage = imageItems.length > 1 && currentImageIndex > 0;
+  const canNextImage = imageItems.length > 1 && currentImageIndex < imageItems.length - 1;
 
   return (
     <div className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-[0_14px_38px_rgba(0,0,0,0.14)]">
-      <div
-        className="relative aspect-[4/5] bg-neutral-100"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
+      <div className="relative aspect-[4/5] bg-neutral-100" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         <Link
           to="/"
           className="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-2 text-sm text-neutral-800 shadow-lg backdrop-blur-sm transition hover:bg-white hover:shadow-xl"
@@ -93,30 +141,19 @@ const BreederCarousel: React.FC<BreederCarouselProps> = ({ mainImage, breederCod
           <div className="absolute right-3 top-3 z-10 flex gap-1.5 rounded-full bg-black/40 px-2 py-1.5 backdrop-blur-sm">
             <button
               type="button"
-              onClick={() => {
-                if (hasSeriesIntro) setCurrentSlide(0);
-              }}
-              className={`h-1.5 rounded-full transition-all ${
-                currentSlide === 0 ? 'w-6 bg-white' : 'w-1.5 bg-white/50'
-              }`}
+              onClick={() => setCurrentSlide(0)}
+              className={`h-1.5 rounded-full transition-all ${currentSlide === 0 ? 'w-6 bg-white' : 'w-1.5 bg-white/50'}`}
             />
             <button
               type="button"
-              onClick={() => {
-                if (hasSeriesIntro) setCurrentSlide(1);
-              }}
-              className={`h-1.5 rounded-full transition-all ${
-                currentSlide === 1 ? 'w-6 bg-white' : 'w-1.5 bg-white/50'
-              }`}
+              onClick={() => setCurrentSlide(1)}
+              className={`h-1.5 rounded-full transition-all ${currentSlide === 1 ? 'w-6 bg-white' : 'w-1.5 bg-white/50'}`}
             />
           </div>
         ) : null}
 
         {/* Slides container */}
-        <div
-          className="flex h-full transition-transform duration-300 ease-out"
-          style={{ transform: `translateX(-${effectiveSlide * 100}%)` }}
-        >
+        <div className="flex h-full transition-transform duration-300 ease-out" style={{ transform: `translateX(-${effectiveSlide * 100}%)` }}>
           {/* Slide 0: Series intro (negative screen) */}
           {hasSeriesIntro ? (
             <div className="h-full w-full shrink-0 overflow-y-auto bg-gradient-to-br from-neutral-800 via-neutral-700 to-neutral-600 p-5">
@@ -124,7 +161,12 @@ const BreederCarousel: React.FC<BreederCarouselProps> = ({ mainImage, breederCod
               <div className="flex h-full flex-col pt-14 pr-10">
                 <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-white/70">
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
                   </svg>
                   <span>系列介绍</span>
                 </div>
@@ -140,44 +182,91 @@ const BreederCarousel: React.FC<BreederCarouselProps> = ({ mainImage, breederCod
                   </button>
                 </div>
 
-                <div className="mt-4 flex-1 whitespace-pre-wrap text-sm leading-relaxed text-white/90">
-                  {activeSeries?.description || ''}
-                </div>
+                <div className="mt-4 flex-1 whitespace-pre-wrap text-sm leading-relaxed text-white/90">{activeSeries?.description || ''}</div>
               </div>
             </div>
           ) : null}
 
           {/* Slide 1: Image (main screen) */}
           <div className="relative h-full w-full shrink-0">
-            <img
-              src={createImageUrl(mainImage?.url?.trim() || '')}
-              alt={mainImage?.alt || breederCode}
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/35 to-transparent" />
-            <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center gap-2">
-              {hasSeriesIntro ? (
+            <img src={createImageUrl(activeImageUrl)} alt={activeImageAlt} className="h-full w-full object-cover" />
+
+            {imageItems.length > 1 ? (
+              <>
                 <button
                   type="button"
-                  onClick={() => setCurrentSlide(0)}
-                  className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white"
+                  onClick={() => setCurrentImageIndex((idx) => Math.max(0, idx - 1))}
+                  disabled={!canPrevImage}
+                  className={`absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50`}
+                  aria-label="上一张"
                 >
-                  查看系列说明
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </button>
-              ) : null}
+                <button
+                  type="button"
+                  onClick={() => setCurrentImageIndex((idx) => Math.min(imageItems.length - 1, idx + 1))}
+                  disabled={!canNextImage}
+                  className={`absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50`}
+                  aria-label="下一张"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            ) : null}
 
-              <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-neutral-900">
-                {sexLabel(breederSex)}
-              </span>
-              {activeSeries?.name ? (
-                <span className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white">
-                  系列 {activeSeries.name}
+            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/35 to-transparent" />
+
+            <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {hasSeriesIntro ? (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentSlide(0)}
+                    className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white"
+                  >
+                    查看系列说明
+                  </button>
+                ) : null}
+
+                <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-neutral-900">{sexLabel(breederSex)}</span>
+                {activeSeries?.name ? (
+                  <span className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white">系列 {activeSeries.name}</span>
+                ) : null}
+              </div>
+
+              {imageItems.length > 0 ? (
+                <span className="shrink-0 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white">
+                  {currentImageIndex + 1}/{imageItems.length}
                 </span>
               ) : null}
             </div>
           </div>
         </div>
       </div>
+
+      {isShowingImage && imageItems.length > 1 ? (
+        <div className="border-t border-black/5 bg-white/90 px-4 py-3">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {imageItems.map((img, index) => (
+              <button
+                key={img.id || `${img.url}-${index}`}
+                type="button"
+                className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 ${
+                  index === currentImageIndex ? 'border-neutral-900' : 'border-transparent'
+                }`}
+                onClick={() => setCurrentImageIndex(index)}
+                aria-label={`查看第${index + 1}张`}
+              >
+                <img src={createImageUrl(img.url)} alt={img.alt || `${breederCode} - ${index + 1}`} className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -475,6 +564,7 @@ const BreederDetail: React.FC = () => {
         {breederQ.data ? (
           <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(340px,420px)_1fr] xl:gap-5">
             <BreederCarousel
+              images={breederQ.data.images || []}
               mainImage={{ url: getBreederImagePath(breederQ.data), alt: breederQ.data.code }}
               breederCode={breederQ.data.code}
               breederSex={breederQ.data.sex}
