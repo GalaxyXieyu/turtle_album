@@ -9,6 +9,7 @@ from app.schemas.schemas import ProductCreate, ProductUpdate, ApiResponse
 from app.core.security import get_current_active_user, User
 from app.core.file_utils import delete_file, save_product_images_optimized
 from app.api.utils import convert_product_to_response
+from app.services.breeder_mate import process_pair_transition_description
 
 router = APIRouter()
 
@@ -116,6 +117,14 @@ async def update_product(
     # Treat explicit null as 'not for sale' (0.0) to keep DB non-null.
     if "price" in update_data and update_data["price"] is None:
         update_data["price"] = 0.0
+
+    # Turtle-album: when operators append egg/change-mate events in description,
+    # auto-annotate change-mate transition period in a machine-friendly way.
+    if "description" in update_data:
+        update_data["description"] = process_pair_transition_description(
+            getattr(product, "description", None),
+            update_data.get("description"),
+        )
 
     for field, value in update_data.items():
         setattr(product, field, value)
