@@ -309,14 +309,14 @@ const AdminProducts = () => {
     try {
       // First create the product without images
       const backendProductData = {
-        code: values.code,
+        code: values.code.toUpperCase(),
         description: values.description || "",
         series_id: values.seriesId?.trim() || null,
         sex: values.sex || null,
         offspring_unit_price: values.sex === 'female' ? values.offspringUnitPrice ?? null : null,
-        sire_code: values.sireCode?.trim() || null,
-        dam_code: values.damCode?.trim() || null,
-        mate_code: values.mateCode?.trim() || null,
+        sire_code: values.sireCode?.trim().toUpperCase() || null,
+        dam_code: values.damCode?.trim().toUpperCase() || null,
+        mate_code: values.mateCode?.trim().toUpperCase() || null,
         has_sample: values.hasSample,
         cost_price: 0, // Default value, can be updated later
         price: 0, // Default value, can be updated later
@@ -365,14 +365,14 @@ const AdminProducts = () => {
     if (!selectedProduct) return;
 
     const updatedProductData = {
-      code: values.code,
+      code: values.code.toUpperCase(),
       description: values.description || "",
       series_id: values.seriesId?.trim() || null,
       sex: values.sex || null,
       offspring_unit_price: values.sex === 'female' ? values.offspringUnitPrice ?? null : null,
-      sire_code: values.sireCode?.trim() || null,
-      dam_code: values.damCode?.trim() || null,
-      mate_code: values.mateCode?.trim() || null,
+      sire_code: values.sireCode?.trim().toUpperCase() || null,
+      dam_code: values.damCode?.trim().toUpperCase() || null,
+      mate_code: values.mateCode?.trim().toUpperCase() || null,
       has_sample: values.hasSample,
       in_stock: values.inStock,
       popularity_score: values.popularityScore,

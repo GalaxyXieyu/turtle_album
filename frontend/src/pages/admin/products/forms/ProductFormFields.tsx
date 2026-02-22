@@ -48,7 +48,7 @@ export function ProductFormFields({ control }: Props) {
             <FormItem>
               <FormLabel>编号</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="输入编号" />
+                <Input {...field} placeholder="输入编号" onChange={(e) => field.onChange(e.target.value.toUpperCase())} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -133,7 +133,7 @@ export function ProductFormFields({ control }: Props) {
             <FormItem>
               <FormLabel>父本编号</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="输入父本编号（可选）" />
+                <Input {...field} placeholder="输入父本编号（可选）" onChange={(e) => field.onChange(e.target.value.toUpperCase())} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -147,7 +147,7 @@ export function ProductFormFields({ control }: Props) {
             <FormItem>
               <FormLabel>母本编号</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="输入母本编号（可选）" />
+                <Input {...field} placeholder="输入母本编号（可选）" onChange={(e) => field.onChange(e.target.value.toUpperCase())} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -161,7 +161,7 @@ export function ProductFormFields({ control }: Props) {
             <FormItem>
               <FormLabel>配偶编号</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="输入配偶编号（可选，仅母龟）" />
+                <Input {...field} placeholder="输入配偶编号（可选，仅母龟）" onChange={(e) => field.onChange(e.target.value.toUpperCase())} />
               </FormControl>
               <FormMessage />
             </FormItem>

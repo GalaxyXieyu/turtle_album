@@ -9,6 +9,7 @@ from app.schemas.schemas import ProductCreate, ProductUpdate, ApiResponse
 from app.core.security import get_current_active_user, User
 from app.core.file_utils import delete_file, save_product_images_optimized
 from app.api.utils import convert_product_to_response
+from app.services.code_normalize import normalize_code_upper
 
 router = APIRouter()
 
@@ -26,14 +27,16 @@ async def create_product(
     db: Session = Depends(get_db)
 ):
     """Create a new product (admin only)."""
-    # Check if product code already exists
-    existing_product = db.query(Product).filter(Product.code == product_data.code).first()
+    normalized_code = normalize_code_upper(product_data.code)
+
+    # Check if product code already exists (codes are stored normalized).
+    existing_product = db.query(Product).filter(Product.code == normalized_code).first()
     if existing_product:
         raise HTTPException(status_code=400, detail="Product code already exists")
 
     # Create product
     product = Product(
-        code=product_data.code,
+        code=normalized_code,
         description=product_data.description,
 
 
@@ -41,9 +44,9 @@ async def create_product(
         series_id=product_data.series_id,
         sex=product_data.sex,
         offspring_unit_price=product_data.offspring_unit_price,
-        sire_code=product_data.sire_code,
-        dam_code=product_data.dam_code,
-        mate_code=product_data.mate_code,
+        sire_code=normalize_code_upper(product_data.sire_code),
+        dam_code=normalize_code_upper(product_data.dam_code),
+        mate_code=normalize_code_upper(product_data.mate_code),
         sire_image_url=product_data.sire_image_url,
         dam_image_url=product_data.dam_image_url,
 
@@ -93,11 +96,13 @@ async def update_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # Check if new code conflicts with existing products
-    if product_data.code and product_data.code != product.code:
-        existing_product = db.query(Product).filter(Product.code == product_data.code).first()
-        if existing_product:
-            raise HTTPException(status_code=400, detail="Product code already exists")
+    # Check if new code conflicts with existing products (codes are stored normalized).
+    if product_data.code is not None:
+        candidate_code = normalize_code_upper(product_data.code)
+        if candidate_code != product.code:
+            existing_product = db.query(Product).filter(Product.code == candidate_code).first()
+            if existing_product:
+                raise HTTPException(status_code=400, detail="Product code already exists")
 
     # Update fields
     update_data = product_data.model_dump(exclude_unset=True)
@@ -118,6 +123,8 @@ async def update_product(
         update_data["price"] = 0.0
 
     for field, value in update_data.items():
+        if field in {"code", "sire_code", "dam_code", "mate_code"}:
+            value = normalize_code_upper(value)
         setattr(product, field, value)
 
     db.commit()
