@@ -366,9 +366,8 @@ const BreederDetail: React.FC = () => {
   const sireCode = breederQ.data?.sireCode || null;
   const damCode = breederQ.data?.damCode || null;
 
-  const mateCode =
-    (breederQ.data as any)?.currentMate?.code || breederQ.data?.currentMateCode || breederQ.data?.mateCode || null;
-  const mateId = (breederQ.data as any)?.currentMate?.id || null;
+  const mateCode = breederQ.data?.currentMate?.code || breederQ.data?.currentMateCode || breederQ.data?.mateCode || null;
+  const mateId = breederQ.data?.currentMate?.id || null;
 
   const sireBreederQ = useQuery({
     queryKey: ['turtle-album', 'breeder-by-code', sireCode],
@@ -387,15 +386,22 @@ const BreederDetail: React.FC = () => {
   const mateBreederQ = useQuery({
     queryKey: ['turtle-album', 'breeder-by-code', mateCode],
     queryFn: () => turtleAlbumService.getBreederByCode((mateCode || '').trim()),
-    enabled: breederQ.data?.sex === 'female' && !!(mateCode || '').trim() && !mateId,
+    enabled: breederQ.data?.sex === 'female' && !!(mateCode || '').trim(),
     retry: false,
   });
 
   const resolvedMateId = mateId || mateBreederQ.data?.id || null;
-  const resolvedMateCode = (
-    (breederQ.data as any)?.currentMate?.code || mateBreederQ.data?.code || mateCode || ''
-  ).trim();
-  const mateForTree = breederQ.data?.sex === 'female' && resolvedMateCode ? { id: resolvedMateId, code: resolvedMateCode } : null;
+  const resolvedMateCode = (breederQ.data?.currentMate?.code || mateBreederQ.data?.code || mateCode || '').trim();
+
+  const resolvedMateThumbnailUrl =
+    typeof mateBreederQ.data?.mainImageUrl === 'string' && mateBreederQ.data.mainImageUrl.trim()
+      ? mateBreederQ.data.mainImageUrl.trim()
+      : null;
+
+  const mateForTree =
+    breederQ.data?.sex === 'female' && resolvedMateCode
+      ? { id: resolvedMateId, code: resolvedMateCode, thumbnailUrl: resolvedMateThumbnailUrl }
+      : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-white to-amber-50/40 text-black">

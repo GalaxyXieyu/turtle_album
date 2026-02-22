@@ -395,7 +395,7 @@ const AdminProducts = () => {
     );
   };
 
-  const toggleFunctionalDesign = (design: any) => {
+  const toggleFunctionalDesign = (_design: unknown) => {
     // This function is no longer needed but keeping stub for now
   };
 

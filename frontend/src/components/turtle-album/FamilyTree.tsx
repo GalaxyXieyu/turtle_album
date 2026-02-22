@@ -5,7 +5,7 @@ import type { FamilyTree, FamilyTreeNode } from '@/types/turtleAlbum';
 
 interface FamilyTreeProps {
   familyTree: FamilyTree;
-  mate?: { id?: string | null; code?: string | null } | null;
+  mate?: { id?: string | null; code?: string | null; thumbnailUrl?: string | null } | null;
 }
 
 interface TreeNodeProps {
@@ -80,6 +80,7 @@ const FamilyTreeComponent: React.FC<FamilyTreeProps> = ({ familyTree, mate }) =>
 
   const mateCode = (mate?.code ?? familyTree.currentMate?.code ?? '').trim();
   const mateId = mate?.id ?? familyTree.currentMate?.id ?? null;
+  const mateThumbnailUrl = typeof mate?.thumbnailUrl === 'string' ? mate.thumbnailUrl.trim() : '';
   const showMateNode = current.sex === 'female' && !!mateCode;
 
   // Check if there are any great-grandparents
@@ -236,7 +237,46 @@ const FamilyTreeComponent: React.FC<FamilyTreeProps> = ({ familyTree, mate }) =>
               {showMateNode ? (
                 <div className="flex flex-col items-center gap-1.5">
                   <div className="h-3 w-px bg-neutral-300" />
-                  {mateId ? (
+                  {mateThumbnailUrl ? (
+                    mateId ? (
+                      <Link
+                        to={`/breeder/${mateId}`}
+                        title={`配偶 ${mateCode}`}
+                        className="group block w-20 overflow-hidden rounded-lg border-2 border-amber-200 bg-amber-50/70 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-1"
+                      >
+                        <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
+                          <img
+                            src={createImageUrl(mateThumbnailUrl)}
+                            alt={mateCode}
+                            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 ring-1 ring-inset ring-black/5" />
+                        </div>
+                        <div className="px-1 py-1 text-center">
+                          <div className="tracking-wide text-[10px] font-semibold text-amber-700">配偶</div>
+                          <div className="max-w-full truncate text-[11px] font-bold text-amber-900">{mateCode}</div>
+                        </div>
+                      </Link>
+                    ) : (
+                      <div
+                        title={`配偶 ${mateCode}（未找到详情）`}
+                        className="w-20 cursor-not-allowed overflow-hidden rounded-lg border-2 border-amber-200 bg-amber-50/70 text-center opacity-60 shadow-sm"
+                      >
+                        <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
+                          <img
+                            src={createImageUrl(mateThumbnailUrl)}
+                            alt={mateCode}
+                            className="h-full w-full object-cover"
+                          />
+                          <div className="absolute inset-0 ring-1 ring-inset ring-black/5" />
+                        </div>
+                        <div className="px-1 py-1">
+                          <div className="tracking-wide text-[10px] font-semibold text-amber-700">配偶</div>
+                          <div className="max-w-full truncate text-[11px] font-bold text-amber-900">{mateCode}</div>
+                        </div>
+                      </div>
+                    )
+                  ) : mateId ? (
                     <Link
                       to={`/breeder/${mateId}`}
                       title={`配偶 ${mateCode}`}
