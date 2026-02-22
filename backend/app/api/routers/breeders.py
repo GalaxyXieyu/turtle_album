@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import nullslast
 from typing import Optional
 
 from app.db.session import get_db
@@ -33,8 +34,19 @@ async def list_breeders(
             raise HTTPException(status_code=400, detail="Invalid sex; must be 'male' or 'female'")
         query = query.filter(Product.sex == sex)
 
-    # Sort by code for consistent, user-friendly ordering (e.g. MG-01..MG-05).
-    breeders = query.order_by(Product.code.asc(), Product.created_at.desc()).limit(limit).all()
+    # Natural sorting by parsed code fields (e.g. 白化-1, 白化-2, ... 白化-10).
+    breeders = (
+        query.order_by(
+            Product.code_prefix.asc(),
+            nullslast(Product.code_parent_number.asc()),
+            nullslast(Product.code_child_number.asc()),
+            nullslast(Product.code_child_letter.asc()),
+            Product.code.asc(),
+            Product.created_at.desc(),
+        )
+        .limit(limit)
+        .all()
+    )
     return ApiResponse(
         data=[convert_product_to_response(b) for b in breeders],
         message="Breeders retrieved successfully",

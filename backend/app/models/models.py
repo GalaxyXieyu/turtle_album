@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, JSON, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -37,10 +37,28 @@ class Series(Base):
 class Product(Base):
     __tablename__ = "products"
 
+    __table_args__ = (
+        Index(
+            "ix_products_series_id_code_sort",
+            "series_id",
+            "code_prefix",
+            "code_parent_number",
+            "code_child_number",
+            "code_child_letter",
+            "code",
+        ),
+    )
+
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     # Display identifier: code (编号). No separate name/stage/status fields.
     code = Column(String, nullable=False, unique=True, index=True)
     description = Column(Text)
+
+    # Natural sort fields derived from code.
+    code_prefix = Column(String)
+    code_parent_number = Column(Integer)
+    code_child_number = Column(Integer)
+    code_child_letter = Column(String(1))
 
     # Turtle-album extensions (kept optional for backward compatibility; enforced at API-level)
     series_id = Column(String, ForeignKey("series.id"), index=True)

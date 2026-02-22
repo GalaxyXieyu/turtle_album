@@ -11,6 +11,7 @@ from app.core.file_utils import delete_file, save_product_images_optimized
 from app.api.utils import convert_product_to_response
 from app.services.breeder_mate import process_pair_transition_description
 from app.services.code_normalize import normalize_code_upper
+from app.services.code_sort_fields import parse_code_sort_fields
 
 router = APIRouter()
 
@@ -35,10 +36,16 @@ async def create_product(
     if existing_product:
         raise HTTPException(status_code=400, detail="Product code already exists")
 
+    code_prefix, parent_number, child_number, child_letter = parse_code_sort_fields(normalized_code)
+
     # Create product
     product = Product(
         code=normalized_code,
         description=product_data.description,
+        code_prefix=code_prefix,
+        code_parent_number=parent_number,
+        code_child_number=child_number,
+        code_child_letter=child_letter,
 
 
         # Turtle-album extensions
@@ -135,6 +142,13 @@ async def update_product(
         if field in {"code", "sire_code", "dam_code", "mate_code"}:
             value = normalize_code_upper(value)
         setattr(product, field, value)
+
+    # Keep natural sort fields consistent with code.
+    code_prefix, parent_number, child_number, child_letter = parse_code_sort_fields(getattr(product, "code", None))
+    product.code_prefix = code_prefix
+    product.code_parent_number = parent_number
+    product.code_child_number = child_number
+    product.code_child_letter = child_letter
 
     db.commit()
     db.refresh(product)
