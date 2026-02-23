@@ -135,8 +135,52 @@ export function useProductImages({ toast, editApi }: UseProductImagesArgs) {
             files: args.files,
           });
 
-          editApi.onImagesSynced({ productId: args.productId, images: result.images });
-          initFromProduct({ id: args.productId, images: result.images } as Product);
+          // Backend should return the full image list; if it returns only newly-created images,
+          // merge with the current UI state so existing images do not disappear.
+          const existingImages: ProductImage[] = imageUploads.map((u, index) => ({
+            id: u.id,
+            url: u.preview,
+            alt: "",
+            type: u.type || "gallery",
+            sort_order: index,
+          }));
+
+          const returnedImages: ProductImage[] = (result.images || []).map((img, index) => ({
+            id: img.id,
+            url: img.url,
+            alt: img.alt || "",
+            type: img.type || "gallery",
+            sort_order: typeof img.sort_order === "number" ? img.sort_order : index,
+          }));
+
+          const existingIds = new Set(existingImages.map((img) => img.id));
+          const returnedIncludesExisting = returnedImages.some((img) => existingIds.has(img.id));
+
+          const mergedImages = (() => {
+            if (existingImages.length === 0 || returnedIncludesExisting) return returnedImages;
+
+            const byId = new Map<string, ProductImage>();
+            existingImages.forEach((img) => byId.set(img.id, img));
+            returnedImages.forEach((img) => byId.set(img.id, img));
+
+            const next: ProductImage[] = [];
+            const seen = new Set<string>();
+            const push = (img: ProductImage) => {
+              const resolved = byId.get(img.id);
+              if (!resolved) return;
+              if (seen.has(resolved.id)) return;
+              seen.add(resolved.id);
+              next.push(resolved);
+            };
+
+            existingImages.forEach(push);
+            returnedImages.forEach(push);
+
+            return next;
+          })().map((img, index) => ({ ...img, sort_order: index }));
+
+          editApi.onImagesSynced({ productId: args.productId, images: mergedImages });
+          initFromProduct({ id: args.productId, images: mergedImages } as Product);
 
           toast({
             title: "图片已上传",
@@ -154,7 +198,7 @@ export function useProductImages({ toast, editApi }: UseProductImagesArgs) {
 
       addFilesAsPreviews(args.files);
     },
-    [addFilesAsPreviews, editApi, initFromProduct, toast]
+    [addFilesAsPreviews, editApi, imageUploads, initFromProduct, toast]
   );
 
   const removeImage = useCallback(

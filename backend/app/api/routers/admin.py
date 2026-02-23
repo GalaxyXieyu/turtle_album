@@ -241,16 +241,19 @@ async def upload_product_images(
     for image in created_images:
         db.refresh(image)
 
+    # Return the full image list (sorted) so the admin UI does not drop existing images.
+    all_images = (
+        db.query(ProductImage)
+        .filter(ProductImage.product_id == product.id)
+        .order_by(ProductImage.sort_order.asc())
+        .all()
+    )
+
     return ApiResponse(
         data={
             "images": [
-                {
-                    "id": img.id,
-                    "url": img.url,
-                    "alt": img.alt,
-                    "type": img.type
-                }
-                for img in created_images
+                {"id": img.id, "url": img.url, "alt": img.alt, "type": img.type}
+                for img in all_images
             ]
         },
         message=f"Successfully uploaded and optimized {len(created_images)} images"

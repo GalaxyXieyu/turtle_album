@@ -231,7 +231,9 @@ export const adminProductService = {
     }
   },
 
-  // Upload product images
+  // Upload product images.
+  // Note: backend should return the complete image list for the product (existing + newly uploaded),
+  // already sorted by sort_order, so the admin UI can refresh without dropping older images.
   async uploadProductImages(productId: string, files: File[]): Promise<{
     images: Array<{
       id: string;
