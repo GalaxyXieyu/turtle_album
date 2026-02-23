@@ -58,27 +58,57 @@ export function ProductFormFields({ control }: Props) {
         <FormField
           control={control}
           name="seriesId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>系列</FormLabel>
-              <Select value={field.value || ''} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder={seriesQ.isLoading ? '加载系列中...' : '选择系列（可选）'} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="">不选择</SelectItem>
-                  {(seriesQ.data || []).map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const selectedId = field.value || '';
+            const seriesList = seriesQ.data || [];
+            const hasSelectedOption =
+              !!selectedId && seriesList.some((s) => s.id === selectedId);
+
+            // If the series list fails to load or doesn't contain the current series id,
+            // keep rendering a fallback item so Radix Select can still display the value.
+            const selectedIdLabel =
+              selectedId.length > 8 ? `${selectedId.slice(0, 8)}...` : selectedId;
+
+            return (
+              <FormItem>
+                <FormLabel>系列</FormLabel>
+                <Select value={selectedId} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={
+                          seriesQ.isLoading ? '加载系列中...' : '选择系列（可选）'
+                        }
+                      />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="">不选择</SelectItem>
+
+                    {selectedId && !hasSelectedOption ? (
+                      <SelectItem value={selectedId}>
+                        当前系列：{selectedIdLabel}
+                        {seriesQ.isLoading ? '（加载中）' : '（不可用/已停用）'}
+                      </SelectItem>
+                    ) : null}
+
+                    {seriesQ.isError ? (
+                      <SelectItem value="__series_error__" disabled>
+                        系列列表加载失败，请刷新/重新登录
+                      </SelectItem>
+                    ) : null}
+
+                    {seriesList.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         <FormField
