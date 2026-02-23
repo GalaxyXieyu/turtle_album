@@ -52,7 +52,11 @@ export function ProductEditForm({ product, onSubmit, onCancel, isSaving, images 
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="space-y-4 pb-24">
             {images}
-            <ProductFormFields control={form.control} />
+            <ProductFormFields
+              control={form.control}
+              initialSeriesId={product.seriesId}
+              initialSeriesName={product.seriesName}
+            />
           </div>
 
           <div className="sticky bottom-0 -mx-6 px-6 py-4 bg-white border-t flex justify-end gap-4">

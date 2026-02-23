@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useQuery } from '@tanstack/react-query';
-import { useWatch, type Control } from "react-hook-form";
+import { useFormContext, useWatch, type Control } from "react-hook-form";
 
 import { turtleAlbumService } from '@/services/turtleAlbumService';
 
@@ -26,15 +26,34 @@ import type { ProductFormValues } from "./productSchema";
 
 type Props = {
   control: Control<ProductFormValues>;
+  initialSeriesId?: string | null;
+  initialSeriesName?: string | null;
 };
 
-export function ProductFormFields({ control }: Props) {
+export function ProductFormFields({ control, initialSeriesId, initialSeriesName }: Props) {
+  const { getValues, setValue } = useFormContext<ProductFormValues>();
   const seriesQ = useQuery({
     queryKey: ['admin', 'series'],
     queryFn: () => turtleAlbumService.adminListSeries({ includeInactive: true }),
   });
 
+  const seriesId = useWatch({ control, name: 'seriesId' });
   const sex = useWatch({ control, name: 'sex' });
+  const seriesUserTouchedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!initialSeriesId) return;
+    if (seriesUserTouchedRef.current) return;
+
+    // Keep edit-mode initial value stable before user interaction.
+    if (!getValues("seriesId")) {
+      setValue("seriesId", initialSeriesId, {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: false,
+      });
+    }
+  }, [getValues, initialSeriesId, seriesId, setValue]);
 
   return (
     <div className="space-y-6">
@@ -59,36 +78,53 @@ export function ProductFormFields({ control }: Props) {
           control={control}
           name="seriesId"
           render={({ field }) => {
-            const selectedId = field.value || '';
+            const NONE_VALUE = "__none__";
+
+            const selectedId = field.value || "";
             const seriesList = seriesQ.data || [];
             const hasSelectedOption =
               !!selectedId && seriesList.some((s) => s.id === selectedId);
-
-            // If the series list fails to load or doesn't contain the current series id,
-            // keep rendering a fallback item so Radix Select can still display the value.
-            const selectedIdLabel =
+            const selectedIdShort =
               selectedId.length > 8 ? `${selectedId.slice(0, 8)}...` : selectedId;
 
             return (
               <FormItem>
                 <FormLabel>系列</FormLabel>
-                <Select value={selectedId} onValueChange={field.onChange}>
+                <Select
+                  value={selectedId || NONE_VALUE}
+                  onOpenChange={(open) => {
+                    if (open) seriesUserTouchedRef.current = true;
+                  }}
+                  onValueChange={(v) => {
+                    // Guard against Radix's mount-time "__none__" sync event
+                    // overriding an already reset form value in edit mode.
+                    if (
+                      v === NONE_VALUE &&
+                      selectedId &&
+                      !seriesUserTouchedRef.current
+                    ) {
+                      return;
+                    }
+                    field.onChange(v === NONE_VALUE ? "" : v);
+                  }}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue
                         placeholder={
-                          seriesQ.isLoading ? '加载系列中...' : '选择系列（可选）'
+                          seriesQ.isLoading ? "加载系列中..." : "选择系列（可选）"
                         }
                       />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">不选择</SelectItem>
+                    <SelectItem value={NONE_VALUE}>不选择</SelectItem>
 
                     {selectedId && !hasSelectedOption ? (
                       <SelectItem value={selectedId}>
-                        当前系列：{selectedIdLabel}
-                        {seriesQ.isLoading ? '（加载中）' : '（不可用/已停用）'}
+                        {initialSeriesName
+                          ? `当前系列：${initialSeriesName}`
+                          : `当前系列：${selectedIdShort}`}
                       </SelectItem>
                     ) : null}
 
@@ -114,24 +150,30 @@ export function ProductFormFields({ control }: Props) {
         <FormField
           control={control}
           name="sex"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>性别</FormLabel>
-              <Select value={field.value || ''} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="选择性别（种龟必填）" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="">不填</SelectItem>
-                  <SelectItem value="female">母</SelectItem>
-                  <SelectItem value="male">公</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const NONE_VALUE = "__none__";
+            return (
+              <FormItem>
+                <FormLabel>性别</FormLabel>
+                <Select
+                  value={field.value || NONE_VALUE}
+                  onValueChange={(v) => field.onChange(v === NONE_VALUE ? "" : v)}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="选择性别（种龟必填）" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value={NONE_VALUE}>不填</SelectItem>
+                    <SelectItem value="female">母</SelectItem>
+                    <SelectItem value="male">公</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         {sex === 'female' ? (
