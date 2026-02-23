@@ -31,6 +31,7 @@ export function ProductImagesManager({ mode, productId, images }: Props) {
             <div className="absolute right-2 top-2 z-10 flex gap-2">
               {mode === "edit" && productId ? (
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   className="bg-white/90 rounded-full px-3 border-none h-8"
@@ -45,6 +46,7 @@ export function ProductImagesManager({ mode, productId, images }: Props) {
               ) : null}
 
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 className="bg-white rounded-full p-1 border-none h-8 w-8"
@@ -61,6 +63,7 @@ export function ProductImagesManager({ mode, productId, images }: Props) {
             {images.imageUploads.length > 1 ? (
               <>
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   className={`absolute left-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-1 border-none h-8 w-8 ${
@@ -72,6 +75,7 @@ export function ProductImagesManager({ mode, productId, images }: Props) {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   className={`absolute right-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-1 border-none h-8 w-8 ${
