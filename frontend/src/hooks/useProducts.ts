@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { productService, adminProductService } from '@/services/productService';
 import { Product, FilterOptions, SortOption } from '@/types/products';
 import { useToast } from '@/hooks/use-toast';
@@ -60,6 +60,7 @@ export const useProducts = (params?: {
     queryKey: PRODUCT_QUERY_KEYS.list(serviceParams.filters, serviceParams.sort, serviceParams.page, serviceParams.search),
     queryFn: ({ signal }) => productService.getProducts({ ...serviceParams, signal }),
     enabled: enabled !== false,
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });

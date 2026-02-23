@@ -266,10 +266,13 @@ const AdminProducts = () => {
   };
 
   useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(1);
+    const tp = apiProductsData?.totalPages;
+    if (!tp) return;
+
+    if (currentPage > tp) {
+      setCurrentPage(tp);
     }
-  }, [currentPage, totalPages]);
+  }, [currentPage, apiProductsData?.totalPages]);
 
   // Handle sort (compute next direction synchronously; don't rely on setState timing)
   const handleSort = (field: keyof Product) => {
