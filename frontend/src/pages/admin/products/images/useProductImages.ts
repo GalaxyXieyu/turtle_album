@@ -385,6 +385,31 @@ export function useProductImages({ toast, editApi }: UseProductImagesArgs) {
         throw new Error("editApi is required for edit-mode image operations");
       }
 
+      const desiredFirstImageId = imageUploads[0]?.id;
+      const currentMainImageId = imageUploads.find((u) => u.type === "main")?.id;
+
+      if (desiredFirstImageId && desiredFirstImageId !== currentMainImageId) {
+        try {
+          await editApi.setMainImage({ productId: args.productId, imageId: desiredFirstImageId });
+
+          // Keep UI order as-is; only update local types so the user sees index 0 as main.
+          setImageUploads((prev) =>
+            prev.map((u, index) => {
+              if (index === 0) return { ...u, type: "main" };
+              if (u.id === currentMainImageId) return { ...u, type: "gallery" };
+              return u;
+            })
+          );
+        } catch (error) {
+          toast({
+            title: "保存失败",
+            description: "设置主图失败，请重试",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       try {
         const orders = imageUploads.map((upload, index) => ({ id: upload.id, sort_order: index }));
         const result = await editApi.reorderImages({ productId: args.productId, orders });
@@ -396,6 +421,7 @@ export function useProductImages({ toast, editApi }: UseProductImagesArgs) {
         setHasImageOrderChanged(false);
         toast({ title: "图片排序已保存", description: "图片显示顺序已更新" });
       } catch (error) {
+        setHasImageOrderChanged(true);
         toast({
           title: "保存失败",
           description: "图片排序保存失败，请重试",
