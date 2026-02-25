@@ -1,6 +1,7 @@
 import React from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
+import { useIsMobile } from '@/hooks/use-mobile';
 import { turtleAlbumService } from '@/services/turtleAlbumService';
 import type { BreederEventItem, BreederEventType } from '@/types/turtleAlbum';
 import { formatMmDd, formatYear, parseIsoDate } from '@/utils/dateFormat';
@@ -84,7 +85,28 @@ type Props = {
 };
 
 export default function BreederEventTimeline({ breederId }: Props) {
+  const isMobile = useIsMobile();
   const [filter, setFilter] = React.useState<BreederEventType | 'all'>('all');
+
+  const userToggledExpandedRef = React.useRef(false);
+  const [isExpanded, setIsExpanded] = React.useState(true);
+
+  React.useEffect(() => {
+    if (userToggledExpandedRef.current) return;
+    // Mobile defaults to collapsed to avoid a very long page; desktop stays expanded.
+    setIsExpanded(!isMobile);
+  }, [isMobile]);
+
+  const [activeId, setActiveId] = React.useState<string | null>(null);
+  const highlightTimerRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (highlightTimerRef.current) window.clearTimeout(highlightTimerRef.current);
+    };
+  }, []);
+
+  const [pendingScrollId, setPendingScrollId] = React.useState<string | null>(null);
 
   const lastEggQ = useQuery({
     queryKey: ['turtle-album', 'breeder', breederId, 'events', { type: 'egg', limit: 1 }],
@@ -144,11 +166,53 @@ export default function BreederEventTimeline({ breederId }: Props) {
   }, [lastEggQ.data, lastMatingQ.data]);
 
   const rowRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
-  const scrollToEvent = (id: string) => {
-    const el = rowRefs.current[id];
-    if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+
+  const requestHighlight = React.useCallback((id: string) => {
+    setActiveId(id);
+    if (highlightTimerRef.current) window.clearTimeout(highlightTimerRef.current);
+    highlightTimerRef.current = window.setTimeout(() => {
+      setActiveId((prev) => (prev === id ? null : prev));
+    }, 1600);
+  }, []);
+
+  const scrollToEvent = React.useCallback(
+    (id: string) => {
+      if (!id) return;
+      if (!isExpanded) setIsExpanded(true);
+      setPendingScrollId(id);
+      requestHighlight(id);
+    },
+    [isExpanded, requestHighlight]
+  );
+
+  React.useEffect(() => {
+    if (!pendingScrollId) return;
+    if (!isExpanded) return;
+
+    let raf = 0;
+    let tries = 0;
+    const tick = () => {
+      tries += 1;
+      const el = rowRefs.current[pendingScrollId];
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setPendingScrollId(null);
+        return;
+      }
+      if (tries >= 12) {
+        setPendingScrollId(null);
+        return;
+      }
+      raf = window.requestAnimationFrame(tick);
+    };
+
+    raf = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(raf);
+  }, [pendingScrollId, isExpanded, items.length]);
+
+  const loadedCountText = React.useMemo(() => {
+    return timelineQ.hasNextPage ? `${items.length}+` : `${items.length}`;
+  }, [timelineQ.hasNextPage, items.length]);
 
   return (
     <div className="mt-8 px-3 sm:px-4 lg:px-5 2xl:px-6">
@@ -172,36 +236,46 @@ export default function BreederEventTimeline({ breederId }: Props) {
         </div>
       </div>
 
-      {/* Mini horizontal timeline */}
-      <div
-        ref={timelineScrollRef}
-        className="mb-4 overflow-x-auto rounded-2xl border border-black/5 bg-white p-3 shadow-[0_6px_18px_rgba(0,0,0,0.05)]"
-      >
-        {nodeItems.length === 0 ? (
-          <div className="text-sm text-neutral-500">暂无事件</div>
-        ) : (
-          <div className="flex min-w-max flex-row items-center gap-4">
-            {nodeItems.map((e) => (
-              <button
-                key={e.id}
-                type="button"
-                onClick={() => scrollToEvent(e.id)}
-                className="group flex flex-col items-center gap-1"
-                title={`${eventLabel(e)} ${formatMmDd(e.eventDate)}`}
-              >
-                <span className="text-sm leading-none" aria-hidden>
-                  {eventIcon(e.eventType)}
-                </span>
-                <span className="text-[10px] font-medium leading-tight text-neutral-700 group-hover:text-neutral-900">
-                  {formatMmDd(e.eventDate)}
-                </span>
-                <span className="text-[10px] font-semibold leading-tight text-neutral-600 group-hover:text-neutral-900">
-                  {eventLabel(e)}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
+      {/* Mini horizontal timeline (fixed-size nodes + scroll snap) */}
+      <div className="relative mb-4">
+        <div
+          ref={timelineScrollRef}
+          className="overflow-x-auto rounded-2xl border border-black/5 bg-white p-3 shadow-[0_6px_18px_rgba(0,0,0,0.05)] snap-x snap-mandatory scroll-px-3"
+        >
+          {nodeItems.length === 0 ? (
+            <div className="text-sm text-neutral-500">暂无事件</div>
+          ) : (
+            <div className="flex w-max flex-row items-center gap-2">
+              {nodeItems.map((e) => (
+                <button
+                  key={e.id}
+                  type="button"
+                  onClick={() => scrollToEvent(e.id)}
+                  className="group flex w-[14vw] min-w-[48px] max-w-[84px] shrink-0 snap-center flex-col items-center gap-1 rounded-xl px-1 py-1 hover:bg-neutral-50"
+                  title={`${eventLabel(e)} ${formatMmDd(e.eventDate)}`}
+                >
+                  <span className="text-sm leading-none" aria-hidden>
+                    {eventIcon(e.eventType)}
+                  </span>
+                  <span className="text-[10px] font-medium leading-tight text-neutral-700 group-hover:text-neutral-900">
+                    {formatMmDd(e.eventDate)}
+                  </span>
+                  <span className="text-[10px] font-semibold leading-tight text-neutral-600 group-hover:text-neutral-900">
+                    {eventLabel(e)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Subtle fade hints when scrollable */}
+        {nodeItems.length > 8 ? (
+          <>
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-8 rounded-l-2xl bg-gradient-to-r from-white via-white/70 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white via-white/70 to-transparent" />
+          </>
+        ) : null}
       </div>
 
       {/* Filters */}
@@ -229,97 +303,147 @@ export default function BreederEventTimeline({ breederId }: Props) {
         ))}
       </div>
 
-      {/* Detail list */}
+      {/* Detail list (collapsible) */}
       <div className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
-        {timelineQ.isLoading ? (
-          <div className="p-6 text-sm text-neutral-600">加载中...</div>
-        ) : null}
-        {timelineQ.isError ? (
-          <div className="p-6 text-sm text-red-600">{(timelineQ.error as Error).message}</div>
-        ) : null}
+        {/* Collapse/Expand header */}
+        <div className="border-b bg-neutral-50 px-4 py-3">
+          {isExpanded ? (
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-xs font-semibold text-neutral-700">
+                {timelineQ.isLoading ? '记录（加载中...）' : `记录（已加载 ${loadedCountText} 条）`}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  userToggledExpandedRef.current = true;
+                  setIsExpanded(false);
+                }}
+                className="rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-semibold text-neutral-700 hover:border-neutral-300"
+              >
+                收起
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  userToggledExpandedRef.current = true;
+                  setIsExpanded(true);
+                }}
+                className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 hover:border-neutral-300"
+              >
+                {timelineQ.isLoading ? '展开记录（加载中...）' : `展开记录（已加载 ${loadedCountText} 条）`}
+              </button>
+              {timelineQ.hasNextPage ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    userToggledExpandedRef.current = true;
+                    setIsExpanded(true);
+                    timelineQ.fetchNextPage();
+                  }}
+                  disabled={timelineQ.isFetchingNextPage}
+                  className="w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  {timelineQ.isFetchingNextPage ? '加载中...' : '查看更多（并展开）'}
+                </button>
+              ) : null}
+            </div>
+          )}
+        </div>
 
-        {!timelineQ.isLoading && items.length === 0 ? (
-          <div className="p-6 text-sm text-neutral-500">暂无记录</div>
-        ) : null}
+        {isExpanded ? (
+          <>
+            {timelineQ.isLoading ? <div className="p-6 text-sm text-neutral-600">加载中...</div> : null}
+            {timelineQ.isError ? (
+              <div className="p-6 text-sm text-red-600">{(timelineQ.error as Error).message}</div>
+            ) : null}
 
-        {items.length > 0 ? (
-          <div className="divide-y">
-            {(() => {
-              let prevYear: string | null = null;
-              return items.map((e) => {
-                const y = formatYear(e.eventDate);
-                const showYear = y && y !== prevYear;
-                prevYear = y || prevYear;
+            {!timelineQ.isLoading && items.length === 0 ? <div className="p-6 text-sm text-neutral-500">暂无记录</div> : null}
 
-                return (
-                  <React.Fragment key={e.id}>
-                    {showYear ? (
-                      <div className="bg-neutral-50 px-4 py-2 text-xs font-semibold text-neutral-700">{y}</div>
-                    ) : null}
+            {items.length > 0 ? (
+              <div className="divide-y">
+                {(() => {
+                  let prevYear: string | null = null;
+                  return items.map((e) => {
+                    const y = formatYear(e.eventDate);
+                    const showYear = y && y !== prevYear;
+                    prevYear = y || prevYear;
 
-                    <div
-                      ref={(el) => {
-                        rowRefs.current[e.id] = el;
-                      }}
-                      className="px-4 py-3"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm leading-none" aria-hidden>
-                              {eventIcon(e.eventType)}
-                            </span>
-                            <span className="text-sm font-semibold text-neutral-900">{eventLabel(e)}</span>
-                            <span className="text-xs font-medium text-neutral-500">{formatMmDd(e.eventDate)}</span>
+                    return (
+                      <React.Fragment key={e.id}>
+                        {showYear ? (
+                          <div className="bg-neutral-50 px-4 py-2 text-xs font-semibold text-neutral-700">{y}</div>
+                        ) : null}
+
+                        <div
+                          ref={(el) => {
+                            rowRefs.current[e.id] = el;
+                          }}
+                          className={`px-4 py-3 transition-colors ${
+                            activeId === e.id ? 'bg-amber-50 ring-2 ring-inset ring-amber-200' : ''
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm leading-none" aria-hidden>
+                                  {eventIcon(e.eventType)}
+                                </span>
+                                <span className="text-sm font-semibold text-neutral-900">{eventLabel(e)}</span>
+                                <span className="text-xs font-medium text-neutral-500">{formatMmDd(e.eventDate)}</span>
+                              </div>
+
+                              {e.eventType === 'mating' ? (
+                                <div className="mt-1 text-sm text-neutral-700">
+                                  公龟 <span className="font-mono">{(e.maleCode || '').trim() || '-'}</span>
+                                </div>
+                              ) : null}
+
+                              {e.eventType === 'egg' ? (
+                                <div className="mt-1 text-sm text-neutral-700">
+                                  数量 {typeof e.eggCount === 'number' ? e.eggCount : '-'}
+                                </div>
+                              ) : null}
+
+                              {e.eventType === 'change_mate' ? (
+                                <div className="mt-1 text-sm text-neutral-700">
+                                  {((e.oldMateCode || '').trim() || '-') + ' → ' + ((e.newMateCode || '').trim() || '-')}
+                                </div>
+                              ) : null}
+
+                              {(() => {
+                                const displayNote = formatNoteForDisplay(e.note, e);
+                                return displayNote ? (
+                                  <div className="mt-2 whitespace-pre-wrap text-sm text-neutral-600">{displayNote}</div>
+                                ) : null;
+                              })()}
+                            </div>
+
+                            <div className="shrink-0 text-xs font-medium text-neutral-400">{e.eventDate ? '' : ''}</div>
                           </div>
-
-                          {e.eventType === 'mating' ? (
-                            <div className="mt-1 text-sm text-neutral-700">
-                              公龟 <span className="font-mono">{(e.maleCode || '').trim() || '-'}</span>
-                            </div>
-                          ) : null}
-
-                          {e.eventType === 'egg' ? (
-                            <div className="mt-1 text-sm text-neutral-700">
-                              数量 {typeof e.eggCount === 'number' ? e.eggCount : '-'}
-                            </div>
-                          ) : null}
-
-                          {e.eventType === 'change_mate' ? (
-                            <div className="mt-1 text-sm text-neutral-700">
-                              {((e.oldMateCode || '').trim() || '-') + ' → ' + ((e.newMateCode || '').trim() || '-')}
-                            </div>
-                          ) : null}
-
-                          {(() => {
-                            const displayNote = formatNoteForDisplay(e.note, e);
-                            return displayNote ? (
-                              <div className="mt-2 whitespace-pre-wrap text-sm text-neutral-600">{displayNote}</div>
-                            ) : null;
-                          })()}
                         </div>
+                      </React.Fragment>
+                    );
+                  });
+                })()}
+              </div>
+            ) : null}
 
-                        <div className="shrink-0 text-xs font-medium text-neutral-400">{e.eventDate ? '' : ''}</div>
-                      </div>
-                    </div>
-                  </React.Fragment>
-                );
-              });
-            })()}
-          </div>
-        ) : null}
-
-        {timelineQ.hasNextPage ? (
-          <div className="flex items-center justify-center border-t bg-neutral-50 px-4 py-3">
-            <button
-              type="button"
-              onClick={() => timelineQ.fetchNextPage()}
-              disabled={timelineQ.isFetchingNextPage}
-              className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-            >
-              {timelineQ.isFetchingNextPage ? '加载中...' : '查看更多'}
-            </button>
-          </div>
+            {timelineQ.hasNextPage ? (
+              <div className="flex items-center justify-center border-t bg-neutral-50 px-4 py-3">
+                <button
+                  type="button"
+                  onClick={() => timelineQ.fetchNextPage()}
+                  disabled={timelineQ.isFetchingNextPage}
+                  className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  {timelineQ.isFetchingNextPage ? '加载中...' : '查看更多'}
+                </button>
+              </div>
+            ) : null}
+          </>
         ) : null}
       </div>
     </div>
