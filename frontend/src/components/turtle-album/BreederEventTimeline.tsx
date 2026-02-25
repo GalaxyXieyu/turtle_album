@@ -42,6 +42,12 @@ function eventDotClass(type: BreederEventType): string {
   return 'bg-neutral-600';
 }
 
+function eventIcon(type: BreederEventType): string {
+  if (type === 'mating') return '🔞';
+  if (type === 'egg') return '🥚';
+  return '🔁';
+}
+
 function formatNoteForDisplay(note: string | null | undefined, e: BreederEventItem): string | null {
   const n = (note || '').trim();
   if (!n) return null;
@@ -183,7 +189,9 @@ export default function BreederEventTimeline({ breederId }: Props) {
                 className="group flex flex-col items-center gap-1"
                 title={`${eventLabel(e)} ${formatMmDd(e.eventDate)}`}
               >
-                <span className={`h-3 w-3 rounded-full ${eventDotClass(e.eventType)}`} />
+                <span className="text-sm leading-none" aria-hidden>
+                  {eventIcon(e.eventType)}
+                </span>
                 <span className="text-[10px] font-medium leading-tight text-neutral-700 group-hover:text-neutral-900">
                   {formatMmDd(e.eventDate)}
                 </span>
@@ -258,7 +266,9 @@ export default function BreederEventTimeline({ breederId }: Props) {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className={`h-2.5 w-2.5 rounded-full ${eventDotClass(e.eventType)}`} />
+                            <span className="text-sm leading-none" aria-hidden>
+                              {eventIcon(e.eventType)}
+                            </span>
                             <span className="text-sm font-semibold text-neutral-900">{eventLabel(e)}</span>
                             <span className="text-xs font-medium text-neutral-500">{formatMmDd(e.eventDate)}</span>
                           </div>
