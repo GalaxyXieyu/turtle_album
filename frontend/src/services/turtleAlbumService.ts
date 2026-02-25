@@ -6,6 +6,7 @@ import type {
   Sex,
   FamilyTree,
   BreederSummary,
+  BreederEventItem,
   BreederEventListResponse,
   BreederEventType,
   MaleMateLoadResponse,
@@ -14,6 +15,7 @@ import type {
 const ENDPOINTS = {
   SERIES: '/api/series',
   ADMIN_SERIES: '/api/admin/series',
+  ADMIN_BREEDER_EVENTS: '/api/admin/breeder-events',
   BREEDERS: '/api/breeders',
   BREEDER_BY_CODE: (code: string) => `/api/breeders/by-code/${encodeURIComponent(code)}`,
   BREEDER_DETAIL: (id: string) => `/api/breeders/${id}`,
@@ -160,6 +162,34 @@ export const turtleAlbumService = {
           limit: params?.limit ?? 10,
           cursor: params?.cursor || undefined,
         },
+      });
+      return res.data.data;
+    } catch (e) {
+      const err = handleApiError(e);
+      throw new ApiRequestError(err.message, { status: err.status, code: err.code });
+    }
+  },
+
+  async adminCreateBreederEvent(payload: {
+    productId: string;
+    eventType: 'mating' | 'egg' | 'change_mate';
+    eventDate: string;
+    maleCode?: string;
+    eggCount?: number;
+    note?: string;
+    oldMateCode?: string;
+    newMateCode?: string;
+  }): Promise<BreederEventItem> {
+    try {
+      const res = await apiClient.post<ApiResponse<BreederEventItem>>(ENDPOINTS.ADMIN_BREEDER_EVENTS, {
+        product_id: payload.productId,
+        event_type: payload.eventType,
+        event_date: payload.eventDate,
+        male_code: payload.maleCode ?? null,
+        egg_count: payload.eggCount ?? null,
+        note: payload.note ?? null,
+        old_mate_code: payload.oldMateCode ?? null,
+        new_mate_code: payload.newMateCode ?? null,
       });
       return res.data.data;
     } catch (e) {

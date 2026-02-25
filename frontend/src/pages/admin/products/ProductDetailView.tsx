@@ -3,6 +3,8 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/types/products";
 
+import { BreederEventsCard } from "./forms/BreederEventsCard";
+
 import { ChevronLeft, ChevronRight, Edit, Eye } from "lucide-react";
 
 export type ProductImagePreview = {
@@ -115,6 +117,8 @@ export function ProductDetailView({
         <p className="text-sm font-medium text-gray-900 mb-1">产品描述</p>
         <p className="text-gray-600 text-sm">{product.description}</p>
       </div>
+
+      <BreederEventsCard productId={product.id} sex={product.sex} mateCode={product.mateCode} />
 
       <div className="flex justify-end gap-4 mt-8">
         <Button

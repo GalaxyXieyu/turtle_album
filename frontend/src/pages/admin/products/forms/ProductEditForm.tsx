@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import type { Product } from "@/types/products";
 
 import { ProductFormFields } from "./ProductFormFields";
+import { BreederEventsCard } from "./BreederEventsCard";
 import {
   productFormDefaultValues,
   productFormSchema,
@@ -28,6 +29,9 @@ export function ProductEditForm({ product, onSubmit, onCancel, isSaving, images 
     resolver: zodResolver(productFormSchema),
     defaultValues: productFormDefaultValues,
   });
+
+  const sex = useWatch({ control: form.control, name: "sex" });
+  const mateCode = useWatch({ control: form.control, name: "mateCode" });
 
   useEffect(() => {
     form.reset({
@@ -57,6 +61,8 @@ export function ProductEditForm({ product, onSubmit, onCancel, isSaving, images 
               initialSeriesId={product.seriesId}
               initialSeriesName={product.seriesName}
             />
+
+            <BreederEventsCard productId={product.id} sex={sex} mateCode={mateCode} />
           </div>
 
           <div className="sticky bottom-0 -mx-6 px-6 py-4 bg-white border-t flex justify-end gap-4">
