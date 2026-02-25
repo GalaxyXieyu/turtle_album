@@ -616,13 +616,19 @@ async def get_male_mate_load(
     rows = (
         db.query(
             Product,
-            last_egg_sq.c.last_egg_at,
-            last_mating_any_sq.c.last_mating_at,
-            last_mating_with_male_sq.c.last_mating_with_male_at,
+            last_egg_event_sq.c.last_egg_at,
+            last_egg_record_sq.c.last_egg_at,
+            last_mating_any_event_sq.c.last_mating_at,
+            last_mating_any_record_sq.c.last_mating_at,
+            last_mating_with_male_event_sq.c.last_mating_with_male_at,
+            last_mating_with_male_record_sq.c.last_mating_with_male_at,
         )
-        .outerjoin(last_egg_sq, last_egg_sq.c.female_id == Product.id)
-        .outerjoin(last_mating_any_sq, last_mating_any_sq.c.female_id == Product.id)
-        .outerjoin(last_mating_with_male_sq, last_mating_with_male_sq.c.female_id == Product.id)
+        .outerjoin(last_egg_event_sq, last_egg_event_sq.c.female_id == Product.id)
+        .outerjoin(last_egg_record_sq, last_egg_record_sq.c.female_id == Product.id)
+        .outerjoin(last_mating_any_event_sq, last_mating_any_event_sq.c.female_id == Product.id)
+        .outerjoin(last_mating_any_record_sq, last_mating_any_record_sq.c.female_id == Product.id)
+        .outerjoin(last_mating_with_male_event_sq, last_mating_with_male_event_sq.c.female_id == Product.id)
+        .outerjoin(last_mating_with_male_record_sq, last_mating_with_male_record_sq.c.female_id == Product.id)
         .filter(Product.id.in_(list(female_ids)))
         .filter(Product.series_id.isnot(None))
         .filter(Product.sex == "female")
@@ -635,7 +641,24 @@ async def get_male_mate_load(
     need_count = 0
     warning_count = 0
 
-    for female, last_egg_at, last_mating_at, last_mating_with_male_at in rows:
+    def _pick_latest(a: Optional[datetime], b: Optional[datetime]) -> Optional[datetime]:
+        if a and b:
+            return a if a >= b else b
+        return a or b
+
+    for (
+        female,
+        last_egg_event_at,
+        last_egg_record_at,
+        last_mating_event_at,
+        last_mating_record_at,
+        last_mating_with_male_event_at,
+        last_mating_with_male_record_at,
+    ) in rows:
+        last_egg_at = _pick_latest(last_egg_event_at, last_egg_record_at)
+        last_mating_at = _pick_latest(last_mating_event_at, last_mating_record_at)
+        last_mating_with_male_at = _pick_latest(last_mating_with_male_event_at, last_mating_with_male_record_at)
+
         status = _compute_need_mating_status(now, last_egg_at, last_mating_at)
         if status == "need_mating":
             need_count += 1

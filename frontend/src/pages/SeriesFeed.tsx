@@ -260,7 +260,8 @@ const SeriesFeed: React.FC = () => {
     }
 
     // In the all view, keep original ordering but pin the most urgent warnings on top.
-    const rank = (s: string) => (s === 'warning' ? 2 : s === 'need_mating' ? 1 : 0);
+    // Only pin warnings to the top; keep the rest in original order.
+    const rank = (s: string) => (s === 'warning' ? 1 : 0);
     const decorated = byStatus.map((b, idx) => ({ b, idx }));
     return decorated
       .slice()
