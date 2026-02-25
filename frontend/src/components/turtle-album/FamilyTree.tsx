@@ -8,6 +8,7 @@ import type { FamilyTree, FamilyTreeNode, MaleMateLoadItem } from '@/types/turtl
 
 interface FamilyTreeProps {
   familyTree: FamilyTree;
+  currentSex?: 'male' | 'female' | null;
   mate?: { id?: string | null; code?: string | null; thumbnailUrl?: string | null } | null;
 }
 
@@ -63,7 +64,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, showSiblings, onToggleSibling
   );
 };
 
-const FamilyTreeComponent: React.FC<FamilyTreeProps> = ({ familyTree, mate }) => {
+const FamilyTreeComponent: React.FC<FamilyTreeProps> = ({ familyTree, currentSex, mate }) => {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [showFatherSiblings, setShowFatherSiblings] = React.useState(false);
   const [showMotherSiblings, setShowMotherSiblings] = React.useState(false);
@@ -81,15 +82,18 @@ const FamilyTreeComponent: React.FC<FamilyTreeProps> = ({ familyTree, mate }) =>
 
   const { current, ancestors, offspring, siblings } = familyTree;
 
+  // Tree endpoint may omit sex; prefer the detail endpoint sex if provided.
+  const sex = (currentSex ?? (current.sex as any) ?? null) as 'male' | 'female' | null;
+
   const mateCode = (mate?.code ?? familyTree.currentMate?.code ?? '').trim();
   const mateId = mate?.id ?? familyTree.currentMate?.id ?? null;
   const mateThumbnailUrl = typeof mate?.thumbnailUrl === 'string' ? mate.thumbnailUrl.trim() : '';
-  const showMateNode = current.sex === 'female' && !!mateCode;
+  const showMateNode = sex === 'female' && !!mateCode;
 
   const maleMateLoadQ = useQuery({
     queryKey: ['turtle-album', 'breeder', current.id, 'mate-load'],
     queryFn: () => turtleAlbumService.getBreederMateLoad(current.id),
-    enabled: current.sex === 'male' && !!current.id,
+    enabled: sex === 'male' && !!current.id,
   });
 
   const maleMates: MaleMateLoadItem[] = maleMateLoadQ.data?.items || [];
@@ -311,7 +315,7 @@ const FamilyTreeComponent: React.FC<FamilyTreeProps> = ({ familyTree, mate }) =>
                 </div>
               ) : null}
 
-              {current.sex === 'male' ? (
+              {sex === 'male' ? (
                 maleMateLoadQ.isLoading ? (
                   <div className="mt-2 text-[11px] font-medium text-neutral-400">加载配偶母龟...</div>
                 ) : mateThumbItems.length > 0 ? (

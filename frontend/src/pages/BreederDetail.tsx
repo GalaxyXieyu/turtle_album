@@ -669,7 +669,7 @@ const BreederDetail: React.FC = () => {
           ) : null}
           {familyTreeQ.data ? (
             <div className="rounded-2xl border border-black/5 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
-              <FamilyTreeComponent familyTree={familyTreeQ.data} mate={mateForTree} />
+              <FamilyTreeComponent familyTree={familyTreeQ.data} currentSex={breederQ.data?.sex ?? null} mate={mateForTree} />
             </div>
           ) : null}
         </div>
