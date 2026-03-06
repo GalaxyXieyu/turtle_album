@@ -12,6 +12,9 @@ from app.schemas.schemas import ApiResponse, EggRecordCreate, MatingRecordCreate
 router = APIRouter()
 
 
+PROTECTED_EVENT_SOURCE_TYPES = {"mating_record", "egg_record", "mate_code_update"}
+
+
 class BreederEventCreate(BaseModel):
     product_id: str
     event_type: str  # mating|egg|change_mate
@@ -313,3 +316,71 @@ async def admin_create_breeder_event(
         },
         message="Breeder event created successfully",
     )
+
+
+@router.delete("/breeder-events/{event_id}", response_model=ApiResponse)
+async def admin_delete_breeder_event(
+    event_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    event = db.query(BreederEvent).filter(BreederEvent.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Breeder event not found")
+
+    source_type = (event.source_type or "").strip()
+    if source_type in PROTECTED_EVENT_SOURCE_TYPES:
+        if source_type == "mating_record":
+            raise HTTPException(
+                status_code=400,
+                detail="This event is derived from a mating record. Delete /api/admin/mating-records/{id} instead.",
+            )
+        if source_type == "egg_record":
+            raise HTTPException(
+                status_code=400,
+                detail="This event is derived from an egg record. Delete /api/admin/egg-records/{id} instead.",
+            )
+        if source_type == "mate_code_update":
+            raise HTTPException(
+                status_code=400,
+                detail="This event is auto-generated from mate code updates and cannot be deleted directly.",
+            )
+
+    db.delete(event)
+    db.commit()
+
+    return ApiResponse(data=None, message="Breeder event deleted successfully")
+
+
+@router.delete("/breeder-events/{event_id}", response_model=ApiResponse)
+async def admin_delete_breeder_event(
+    event_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Admin: delete a breeder event by id.
+
+    Safety:
+    - Events derived from legacy tables should be deleted via their source endpoint.
+    """
+
+    event = db.query(BreederEvent).filter(BreederEvent.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Breeder event not found")
+
+    source_type = (getattr(event, "source_type", None) or "").strip()
+    if source_type in {"mating_record", "egg_record"}:
+        raise HTTPException(
+            status_code=400,
+            detail="Breeder event is derived from a record; delete the source record instead",
+        )
+    if source_type in {"mate_code_update"}:
+        raise HTTPException(
+            status_code=400,
+            detail="Breeder event is derived from mate_code updates; modify mate_code history instead",
+        )
+
+    db.delete(event)
+    db.commit()
+
+    return ApiResponse(data=None, message="Breeder event deleted successfully")
